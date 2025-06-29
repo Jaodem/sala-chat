@@ -8,8 +8,9 @@ const { Server } = require('socket.io');
 // Rutas
 const authRoutes = require('./routes/auth');
 // const chatRoutes = require('./routes/chat');
+const protectedRoutes = require('./routes/protected');
 
-// Inicializacions
+// Inicializaciones
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -23,6 +24,7 @@ app.use(express.json());
 // Endpoints
 app.use('/api/auth', authRoutes);
 // app.use('api/chat', chatRoutes);
+app.use('/api/protected', protectedRoutes);
 
 // Sockets
 // const chatSocket = require('./sockets/chatSocket');
