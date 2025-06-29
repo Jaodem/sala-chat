@@ -27,8 +27,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
 
 // Sockets
-// const chatSocket = require('./sockets/chatSocket');
-// io.on('connection', (socket) => chatSocket(socket, io));
+const chatSocket = require('./sockets/chatSocket');
+io.on('connection', (socket) => chatSocket(socket, io));
 
 // Conexión a Mongo y servidor
 mongoose.connect(process.env.MONGO_URI)
