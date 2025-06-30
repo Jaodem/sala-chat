@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Message = require('../models/Message');
 
-const connectedUsers = new Map(); // userId -> socket.id
+const connectedUsers = new Map(); // userId -> { socketId, username }
 
 module.exports = (socket, io) => {
     // Leer token enviado desde el cliente
@@ -17,12 +17,19 @@ module.exports = (socket, io) => {
         const userId = decoded.userId;
         const username = decoded.username;
 
-        // Asociar userId con el socket.id
-        connectedUsers.set(userId, socket.id);
+        // Guardar usuario conectado
+        connectedUsers.set(userId, {
+            socketId: socket.id,
+            username
+        });
+
         console.log(`✅ Usuario conectado: ${username} (${userId})`);
 
         // Avisar a los demás
         socket.broadcast.emit('user-connected', { userId, username });
+
+        // Emitir lista actualizada a todos los usuarios
+        io.emit('user-list', getConnectedUserList());
 
         // Mensaje privado
         socket.on('send-message', async (data) => {
@@ -33,15 +40,27 @@ module.exports = (socket, io) => {
         socket.on('disconnect', () => {
             connectedUsers.delete(userId);
             console.log(`🔌 Usuario desconectado: ${username} (${userId})`);
+
             socket.broadcast.emit('user-disconnected', { userId });
+
+            // Emitir la lista actualizada a todos
+            io.emit('user-list', getConnectedUserList());
         });
 
-        // Aquí se agregarían más eventos luego (como recibir/emitir mensajes)
     } catch (error) {
         console.log('❌ Token inválido:', error.message);
         socket.disconnect();
     }
 };
+
+// Función para devolver la lista de usuarios conectados
+function getConnectedUserList() {
+    const users = [];
+    for (const [userId, { username }] of connectedUsers.entries()) {
+        users.push({ userId, username });
+    }
+    return users;
+}
 
 // Lógica del envío de mensajes
 async function sendPrivateMessage(data, { socket, io, userId, username }) {
