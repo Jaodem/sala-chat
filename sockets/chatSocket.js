@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const Message = require('../models/Message');
 
 const connectedUsers = new Map(); // userId -> socket.id
 
@@ -20,29 +21,12 @@ module.exports = (socket, io) => {
         connectedUsers.set(userId, socket.id);
         console.log(`✅ Usuario conectado: ${username} (${userId})`);
 
-        // Emitir evento a otros (por ejemplo, que se conectó un usuario)
-        socket.broadcast.emit('user-connected', {
-            userId,
-            username
-        });
+        // Avisar a los demás
+        socket.broadcast.emit('user-connected', { userId, username });
 
-        // Recibir mensajes y reenviar a todos (excepto al que lo envía)
-        socket.on('send-message', (data) => {
-            if (!data.message || typeof data.message !== 'string') return;
-
-            const payload = {
-                userId,
-                username,
-                message: data.message.trim()
-            };
-
-            console.log(`📝 Mensaje de ${username}: ${payload.message}`);
-
-            // Enviar a todos excepto al remitente
-            socket.broadcast.emit('chat-message', payload);
-
-            // También podés reenviárselo al que lo envió, si se desea
-            socket.emit('chat-message', payload);
+        // Mensaje privado
+        socket.on('send-message', async (data) => {
+            sendPrivateMessage(data, { socket, io, userId, username });
         });
 
         // Manejar desconexión
@@ -58,3 +42,34 @@ module.exports = (socket, io) => {
         socket.disconnect();
     }
 };
+
+// Lógica del envío de mensajes
+async function sendPrivateMessage(data, { socket, io, userId, username }) {
+    const { message, toUserId, toUsername } = data;
+
+    if (!message || !toUserId || !toUsername) return;
+
+    const payload = {
+        userId,
+        username,
+        toUserId,
+        toUsername,
+        message: message.trim()
+    };
+
+    try {
+        const saved = await Message.create(payload);
+        console.log(`✉️ ${username} -> ${toUsername}: ${message}`);
+
+        // Enviar al destinatario si está conectado
+        const toSocketId = connectedUsers.get(toUserId);
+        if (toSocketId) {
+            io.to(toSocketId).emit('private-message', payload);
+        }
+
+        // Enviar también al emisor
+        socket.emit('private-message', payload);
+    } catch (err) {
+        console.error('❌ Error al guardar mensaje:', err.message);
+    }
+}
