@@ -6,9 +6,29 @@ const registerUser = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        // Validar que no falte nada
+        // Validar campos obligatorios
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'Faltan datos requeridos' });
+        }
+
+        // Validar longitud username
+        if (username.length < 3) {
+            return res.status(400).json({ message: 'El nombre de usuario debe tener al menos 3 caracteres' });
+        }
+
+        // Validar formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Email inválido' });
+        }
+
+        // Validar fortaleza de password
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&_\-])[A-Za-z\d@$!%*#?&_\-]{6,}$/;
+
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({
+                message: 'La contraseña debe tener al menos 6 caracteres e incluir minúscula, mayúscula, número y símbolo especial'
+            });
         }
 
         // Verificar si el usuario ya existe
@@ -40,21 +60,26 @@ const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validar que no falte nada
+        // Validar campos obligatorios
         if (!email || !password) {
             return res.status(400).json({ message: 'Faltan datos requeridos' });
         }
 
-        // Buscar usuario por email
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ message: 'Usuario no encontrado' });
+        // Validar formato de email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Email inválido' });
         }
 
-        // Comparar contraseñas
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Contraseña incorrecta' });
+        // Validar longitud mínima
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
+        }
+
+        // Validar si no existe el usuario o la contraseña no coincide
+        const user = await User.findOne({ email });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(400).json({ message: 'Credenciales inválidas' });
         }
 
         // Crear token JWT
