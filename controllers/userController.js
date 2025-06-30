@@ -5,13 +5,11 @@ const getProfile = (req, res) => {
         }
 
         res.json({
-            message: 'Información protegida del usuario',
+            message: 'Informarión del usuario autenticado',
             data: {
                 userId: req.user.userId,
                 username: req.user.username,
-                email: req.user.email,
-                issuedAt: req.user.iat,
-                expiresAt: req.user.exp
+                email: req.user.email
             }
         });
     } catch (error) {
