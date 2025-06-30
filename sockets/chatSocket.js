@@ -83,11 +83,17 @@ async function sendPrivateMessage(data, { socket, io, userId, username }) {
         // Enviar al destinatario si está conectado
         const toSocketId = connectedUsers.get(toUserId);
         if (toSocketId) {
-            io.to(toSocketId).emit('private-message', payload);
+            io.to(toSocketId).emit('private-message', {
+                ...payload,
+                createdAt: saved.createdAt
+            });
         }
 
         // Enviar también al emisor
-        socket.emit('private-message', payload);
+        socket.emit('private-message', {
+            ...payload,
+            createdAt: saved.createdAt
+        });
     } catch (err) {
         console.error('❌ Error al guardar mensaje:', err.message);
     }
