@@ -5,7 +5,7 @@ function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
 
     // Verificar si el encabezado Authorization está presente y bien formado
-    if (!authHeader || !authHeader.startsWith('Beaber ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'Token no proporcionado o mal formado' });
     }
 

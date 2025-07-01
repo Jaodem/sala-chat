@@ -1,28 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
+const { getProfile, getAllUsers } = require('../controllers/userController');
 
 // Ruta para obtener datos del usuario autenticado
-router.get('/me', authMiddleware, (req, res) => {
-    try {
-        const { userId, username, email } = req.user;
+router.get('/me', authMiddleware, getProfile);
 
-        if (!userId || !username) {
-            return res.status(400).json({ message: 'Datos de usuario incompletos en el token' });
-        }
-
-        res.json({
-            message: 'Informacion del usuario autenticado',
-            data: {
-                userId,
-                username,
-                email
-            }
-        });
-    } catch (error) {
-        console.error('Error en /api/users/me:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
-    }
-});
+// Ruta para obtner todos los usuarios
+router.get('/all', authMiddleware, getAllUsers);
 
 module.exports = router;
