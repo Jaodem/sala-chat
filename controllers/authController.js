@@ -3,6 +3,7 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { sendVerificationEmail } = require('../utils/email');
 
 // Registro
 const registerUser = asyncHandler(async (req, res) => {
@@ -66,7 +67,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     await user.save();
 
-    console.log(`🔗 Verificación: http://localhost:3000/api/auth/verify-email?token=${token}`);
+    // Enviar correo de verificación
+    await sendVerificationEmail(email, token);
 
     res.status(201).json({ message: 'Usuario registrado correctamente' });
 });
