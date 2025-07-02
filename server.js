@@ -10,6 +10,9 @@ const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
 const userRoutes = require('./routes/users');
 
+// Middlewares
+const errorHandler = require('./middleware/errorHandler');
+
 // Inicializaciones
 const app = express();
 const server = http.createServer(app);
@@ -25,6 +28,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/users', userRoutes);
+
+// Middleware de manejo global de errores
+app.use(errorHandler);
 
 // Sockets
 const chatSocket = require('./sockets/chatSocket');

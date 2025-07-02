@@ -1,56 +1,47 @@
-const jwt = require('jsonwebtoken');
+const { verifySocketToken } = require('../utils/socketUtils');
 const Message = require('../models/Message');
 
 const connectedUsers = new Map(); // userId -> { socketId, username }
 
-module.exports = (socket, io) => {
-    // Leer token enviado desde el cliente
-    const token = socket.handshake.auth.token;
+module.exports = async (socket, io) => {
+    let userId, username;
 
-    if (!token) {
-        console.log('❌ Conexión rechazada: no se envió token');
+    try {
+        ({ userId, username } = verifySocketToken(socket));
+    } catch (error) {
+        console.log(`❌ Conexión rechazada: ${error.message}`);
         return socket.disconnect();
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const userId = decoded.userId;
-        const username = decoded.username;
+    // Guardar usuario conectado
+    connectedUsers.set(userId, {
+        socketId: socket.id,
+        username
+    });
 
-        // Guardar usuario conectado
-        connectedUsers.set(userId, {
-            socketId: socket.id,
-            username
-        });
+    console.log(`✅ Usuario conectado: ${username} (${userId})`);
 
-        console.log(`✅ Usuario conectado: ${username} (${userId})`);
+    // Avisar a los demás
+    socket.broadcast.emit('user-connected', { userId, username });
 
-        // Avisar a los demás
-        socket.broadcast.emit('user-connected', { userId, username });
+    // Emitir lista actualizada a todos los usuarios
+    io.emit('user-list', getConnectedUserList());
 
-        // Emitir lista actualizada a todos los usuarios
+    // Manejar recepción de mensajes privados
+    socket.on('send-message', async (data) => {
+        await sendPrivateMessage(data, { socket, io, userId, username });
+    });
+
+    // Manejar desconexión
+    socket.on('disconnect', () => {
+        connectedUsers.delete(userId);
+        console.log(`🔌 Usuario desconectado: ${username} (${userId})`);
+
+        socket.broadcast.emit('user-disconnected', { userId });
+
+        // Emitir lista actualizada a todos
         io.emit('user-list', getConnectedUserList());
-
-        // Mensaje privado
-        socket.on('send-message', async (data) => {
-            sendPrivateMessage(data, { socket, io, userId, username });
-        });
-
-        // Manejar desconexión
-        socket.on('disconnect', () => {
-            connectedUsers.delete(userId);
-            console.log(`🔌 Usuario desconectado: ${username} (${userId})`);
-
-            socket.broadcast.emit('user-disconnected', { userId });
-
-            // Emitir la lista actualizada a todos
-            io.emit('user-list', getConnectedUserList());
-        });
-
-    } catch (error) {
-        console.log('❌ Token inválido:', error.message);
-        socket.disconnect();
-    }
+    });
 };
 
 // Función para devolver la lista de usuarios conectados
@@ -81,9 +72,9 @@ async function sendPrivateMessage(data, { socket, io, userId, username }) {
         console.log(`✉️ ${username} -> ${toUsername}: ${message}`);
 
         // Enviar al destinatario si está conectado
-        const toSocketId = connectedUsers.get(toUserId);
-        if (toSocketId) {
-            io.to(toSocketId).emit('private-message', {
+        const recipient = connectedUsers.get(toUserId);
+        if (recipient) {
+            io.to(recipient.socketId).emit('private-message', {
                 ...payload,
                 createdAt: saved.createdAt
             });
@@ -94,7 +85,7 @@ async function sendPrivateMessage(data, { socket, io, userId, username }) {
             ...payload,
             createdAt: saved.createdAt
         });
-    } catch (err) {
-        console.error('❌ Error al guardar mensaje:', err.message);
+    } catch (error) {
+        console.error('❌ Error al guardar mensaje:', error.message);
     }
 }
