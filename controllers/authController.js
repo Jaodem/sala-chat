@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // Registro
 const registerUser = asyncHandler(async (req, res) => {
@@ -47,15 +48,25 @@ const registerUser = asyncHandler(async (req, res) => {
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generar token de verificación (válido por una hora)
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenExpires = new Date(Date.now() + 60 * 60 * 1000); // Una hora
+
     // Crear usuario
     const user = new User({
         username,
         username_lower: username.toLowerCase(),
         email,
-        password : hashedPassword
+        password: hashedPassword,
+        verificationToken: {
+            token,
+            expiresAt: tokenExpires
+        }
     });
 
     await user.save();
+
+    console.log(`🔗 Verificación: http://localhost:3000/api/auth/verify-email?token=${token}`);
 
     res.status(201).json({ message: 'Usuario registrado correctamente' });
 });
@@ -74,7 +85,7 @@ const loginUser = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: 'El identificador debe tener al menos 3 caracteres' });
     }
 
-    // Validar longitud mínima
+    // Validar longitud mínima de password
     if (password.length < 6) {
         return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
     }
@@ -91,8 +102,18 @@ const loginUser = asyncHandler(async (req, res) => {
         user = await User.findOne({ username_lower: identifier.toLowerCase() });
     }
 
-    // Validar si no existe el usuario o la contraseña no coincide
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    // Validar si el usuario existe
+    if (!user) {
+        return res.status(400).json({ message: 'Credenciales inválidas' });
+    }
+
+    // Verificar si el usuario está verificado
+    if (!user.isVerified) {
+        return res.status(403).json({ message: 'Debes verificar tu cuenta antes de iniciar sesión' });
+    }
+
+    // Validar contraseña
+    if (!(await bcrypt.compare(password, user.password))) {
         return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
@@ -110,4 +131,29 @@ const loginUser = asyncHandler(async (req, res) => {
     res.json({ token });
 });
 
-module.exports = { registerUser, loginUser };
+const verifyEmail = asyncHandler(async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return res.status(400).json({ message: 'Token no proporcionado' });
+    }
+
+    const user = await User.findOne({ 'verificationToken.token': token });
+
+    if (!user) {
+        return res.status(400).json({ message: 'Token inválido o usuario no encontrado' });
+    }
+
+    if (user.verificationToken.expiresAt < Date.now()) {
+        return res.status(400).json({ message: 'El token ha expirado' });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+
+    await user.save();
+
+    res.json({ message: 'Cuenta verificada correctamente' });
+});
+
+module.exports = { registerUser, loginUser, verifyEmail };
