@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { sendResetPasswordEmail } = require('../utils/sendResetPasswordEmail');
 
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
@@ -33,7 +34,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await user.save();
 
     // Simulación de envío por mail (por ahora solo por consola)
-    console.log(`🔗 Enlace de restablecimiento: http://localhost:3000/api/auth/reset-password?token=${token}`);
+    await sendResetPasswordEmail(email, token);
 
     res.status(200).json({ message: 'Si el email está registrado, recibirás un enlace para restablecer tu contraseña' });
 });
