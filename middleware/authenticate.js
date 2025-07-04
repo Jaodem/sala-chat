@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-function authMiddleware(req, res, next) {
+function authenticate(req, res, next) {
     // El token se espera en el header Authorization con formato "Bearer TOKEN"
     const authHeader = req.headers.authorization;
 
@@ -25,4 +25,4 @@ function authMiddleware(req, res, next) {
     }
 }
 
-module.exports = authMiddleware;
+module.exports = authenticate;

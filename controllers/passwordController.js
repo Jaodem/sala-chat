@@ -111,4 +111,46 @@ const resendResetPasswordEmail = asyncHandler(async (req, res) => {
     return res.status(200).json({ message: 'Si el email está registrado, recibirás nuevamente el enlace' });
 });
 
-module.exports = { forgotPassword, resetPassword, resendResetPasswordEmail };
+// Para cambiar contraseña estando ya logueado
+const changePassword = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Debes ingresar la contraseña actual y la nueva' });
+    }
+
+    // Buscar usuario
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Verificar la contraseña actual
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+        return res.status(401).json({ message: 'La contraseña actual es incorrecta' });
+    }
+
+    // Validar la nueva contraseña
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&_\-])[A-Za-z\d@$!%*#?&_\-]{6,}$/;
+    if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json({
+            message: 'La nueva contraseña debe tener al menos 6 caracteres e incluir minúscula, mayúscula, número y símbolo especial'
+        });
+    }
+    
+    // Verificar que la nueva contraseña no sea igual a la actual
+    const samePassword = await bcrypt.compare(newPassword, user.password);
+    if (samePassword) {
+        return res.status(400).json({ message: 'La nueva contraseña no puede ser igual a la actual' });
+    }
+
+    // Hashear y guardar
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: 'Contraseña actualizada correctamente' });
+});
+
+module.exports = { forgotPassword, resetPassword, resendResetPasswordEmail, changePassword };

@@ -1,7 +1,7 @@
 const { io } = require('socket.io-client');
 
 // Aquí se reemplaza por un token generado desde login
-const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODYzMzUwNzAzMzVhYzNlYTg5MWNmNzEiLCJ1c2VybmFtZSI6ImphbyIsImVtYWlsIjoiamFvQG1haWwuY29tIiwiaWF0IjoxNzUxNDEzNTI1LCJleHAiOjE3NTE0MTcxMjV9.1ONlZXO2KdH4wk5Xq3rJYyAxNjnyZB2fLou8L-3SUsc";
+const token = "";
 
 // Conexión al backend con el token
 const socket = io('http://localhost:3000', {
