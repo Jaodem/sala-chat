@@ -133,6 +133,7 @@ const loginUser = asyncHandler(async (req, res) => {
     res.json({ token });
 });
 
+// Verificar mail
 const verifyEmail = asyncHandler(async (req, res) => {
     const { token } = req.query;
 
@@ -158,4 +159,40 @@ const verifyEmail = asyncHandler(async (req, res) => {
     res.json({ message: 'Cuenta verificada correctamente' });
 });
 
-module.exports = { registerUser, loginUser, verifyEmail };
+// Reenvío de mail para verificar cuenta
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    // Validar que se proporcione un email
+    if (!email) {
+        return res.status(400).json({ message: 'El email es obligatorio' });
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Formato de email inválido' });
+    }
+
+    // Buscar el usuario (case-insensitive)
+    const user = await USer.findOne({ email }).collation({ locale: 'en', strength: 2 });
+
+    // Si no se encuentra el usuario o ya está verificado, dar misma respuesta (por seguridad)
+    if (!user || user.isVerified) {
+        return res.status(200).json({ message: 'Si tu cuenta no está verificada, recibirás un nuevo enlace' });
+    }
+
+    // Generar nuevo token y fecha de expiración
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    user.verificationToken = { token, expiresAt };
+    await user.save();
+
+    // Reenviar mail
+    await sendVerificationEmail(email, token);
+
+    return res.status(200).json({ message: 'Si tu cuenta no está verificada, recibirás un nuevo enlace' });
+});
+
+module.exports = { registerUser, loginUser, verifyEmail, resendVerificationEmail };

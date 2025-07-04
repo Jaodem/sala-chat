@@ -39,6 +39,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Si el email está registrado, recibirás un enlace para restablecer tu contraseña' });
 });
 
+// Para resetear la contraseña
 const resetPassword = asyncHandler(async (req, res) => {
     const { token } = req.body;
     const { password } = req.body;
@@ -77,4 +78,37 @@ const resetPassword = asyncHandler(async (req, res) => {
     res.json({ message: 'Contraseña actualizada correctamente' });
 });
 
-module.exports = { forgotPassword, resetPassword };
+// Para reenviar el mail de reseteo de contraseña
+const resendResetPasswordEmail = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    // Validación básica
+    if (!email) {
+        return res.status(400).json({ message: 'El email es obligatorio' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Formato de email inválido' });
+    }
+
+    const user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
+
+    // Siempre misma respuesta por seguridad
+    if (!user) {
+        return res.status(200).json({ message: 'Si el email está registrado, recibirás nuevamente el enlace' });
+    }
+
+    // Generar nuevo token y expiración
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    user.resetPasswordToken = { token, expiresAt};
+    await user.save();
+
+    await sendResetPasswordEmail(email, token);
+
+    return res.status(200).json({ message: 'Si el email está registrado, recibirás nuevamente el enlace' });
+});
+
+module.exports = { forgotPassword, resetPassword, resendResetPasswordEmail };
