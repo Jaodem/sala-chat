@@ -1,4 +1,5 @@
 const asyncHandler = require('express-async-handler');
+const bcrypt = require('bcrypt');
 const User = require('../models/User');
 
 const getProfile = asyncHandler((req, res) => {
@@ -30,7 +31,33 @@ const getAllUsers = asyncHandler(async (req, res) => {
     });
 });
 
+// Para eliminar la cuenta
+const deleteAccount = asyncHandler(async (req, res) => {
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).json({ message: 'La contraseña es requerida para eliminar la cuenta' });
+    }
+
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+        return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+        return res.status(401).json({ message: 'Contraseña incorrecta' });
+    }
+
+    await user.deleteOne();
+
+    res.json({ message: 'Cuenta eliminada exitosamente' });
+});
+
 module.exports = {
     getProfile,
-    getAllUsers
+    getAllUsers,
+    deleteAccount,
 };
