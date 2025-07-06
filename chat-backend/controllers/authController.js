@@ -175,7 +175,7 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
     }
 
     // Buscar el usuario (case-insensitive)
-    const user = await USer.findOne({ email }).collation({ locale: 'en', strength: 2 });
+    const user = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
 
     // Si no se encuentra el usuario o ya está verificado, dar misma respuesta (por seguridad)
     if (!user || user.isVerified) {
