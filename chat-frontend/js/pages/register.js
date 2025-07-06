@@ -1,6 +1,12 @@
+import { attachPasswordRules } from "../components/passwordRules.js";
+
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');
 const alertContainer = document.getElementById('alertContainer');
+const passwordInput = document.getElementById('password');
+
+// Activar validación visual de contraseña
+attachPasswordRules(passwordInput);
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -57,57 +63,3 @@ function showAlert(message, type = 'info') {
         alertContainer.innerHTML = '';
     }, 5000);
 }
-
-// Se selecciona el input de contraseña
-const passwordInput = document.getElementById('password');
-
-// Se seleccionar la lista
-const passwordRules = document.getElementById('passwordRules');
-
-// Mostra cuando el input tiene foco
-passwordInput.addEventListener('focus', () => {
-    passwordRules.style.display = 'block';
-});
-
-// Ocultar cuando se pierde el foco
-passwordInput.addEventListener('blur', () => {
-    setTimeout(() => {
-        passwordRules.style.display = 'none';
-    }, 100);
-});
-
-// Items de reglas
-const ruleLength = document.getElementById('rule-length');
-const ruleLower = document.getElementById('rule-lower');
-const ruleUpper = document.getElementById('rule-upper');
-const ruleNumber = document.getElementById('rule-number');
-const ruleSymbol = document.getElementById('rule-symbol');
-
-// Función que valida y actualiza reglas
-function validatePasswordRules(password) {
-    // Reglas individuales como expresiones regulares
-    const hasLength = password.length >= 6;
-    const hasLower = /[a-z]/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSymbol = /[@$!%*#?&_\-]/.test(password);
-
-    // Actualizamos cada ítem
-    updateRule(ruleLength, hasLength);
-    updateRule(ruleLower, hasLower);
-    updateRule(ruleUpper, hasUpper);
-    updateRule(ruleNumber, hasNumber);
-    updateRule(ruleSymbol, hasSymbol);
-}
-
-// Actualiza un item visualmente
-function updateRule(element, isValid) {
-    element.textContent = isValid ? '✔️' : '❌';
-    element.classList.remove('text-red-500', 'text-green-500');
-    element.classList.add(isValid ? 'text-green-500' : 'text-red-500');
-}
-
-// Escuchar mientras el usuario escribe
-passwordInput.addEventListener('input', (e) => {
-    validatePasswordRules(e.target.value);
-});
