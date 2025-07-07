@@ -43,15 +43,13 @@ export function attachPasswordRules(inputElement) {
         rules.classList.remove('hidden');
     });
 
-    inputElement.addEventListener('blur', () => {
-        // Esperamos un momento y luego verificamos si el foco sigue en el input o en el botón
-        setTimeout(() => {
-            const active = document.activeElement;
-            const wrapper = inputElement.closest('#password-wrapper');
+    document.addEventListener('focusin', (e) => {
+        const target = e.target;
+        const isPasswordField = target === inputElement;
+        const isToggleBtn = target === document.querySelector('#togglePassword');
 
-            if (!wrapper.contains(active)) {
-                rules.classList.add('hidden');
-            }
-        }, 100);
+        if (!isPasswordField && !isToggleBtn) {
+            rules.classList.add('hidden');
+        }
     });
 }
