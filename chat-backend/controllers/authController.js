@@ -34,13 +34,33 @@ const registerUser = asyncHandler(async (req, res) => {
         });
     }
 
-    // Verificar unicidad (case-insensitive)
-    const existingEmail = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
-    if (existingEmail) {
+    // Verificar si el email ya está verificado
+    const existingUser = await User.findOne({ email }).collation({ locale: 'en', strength: 2 });
+
+    if (existingUser) {
+        if (!existingUser.isVerified) {
+            // Reenviar correo de verificación
+            const newToken = crypto.randomBytes(32).toString('hex');
+            const newExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+            existingUser.verificationToken = {
+                token: newToken,
+                expiresAt: newExpires
+            };
+
+            await existingUser.save();
+            await sendVerificationEmail(email, newToken);
+
+            return res.status(409).json({
+                message: 'Debes verificar tu cuenta antes de iniciar sesión',
+                code: 'EMAIL_NOT_VERIFIED'
+            });
+        }
+        
         return res.status(400).json({ message: 'El email ya está registrado' });
     }
 
-    // Verificar si el usuario ya existe
+    // Verificar si el nombre de usuario ya está en uso
     const existingUsername = await User.findOne( { username_lower: username.toLowerCase() });
     if (existingUsername) {
         return res.status(400).json({ message: 'El nombre de usuario ya está en uso' });

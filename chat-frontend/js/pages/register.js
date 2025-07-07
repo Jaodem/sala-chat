@@ -41,6 +41,19 @@ form.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (!response.ok) {
+            if (data.code === 'EMAIL_NOT_VERIFIED') {
+                sessionStorage.setItem('pendingEmail', email);
+                showAlert(
+                    'Este correo ya está registrado pero no fue verificado. Te enviamos un nuevo email para confirmar tu cuenta.',
+                    'info'
+                );
+
+                setTimeout(() => {
+                    window.location.href = 'verificar-email.html';
+                }, 5000); // Espera 2.5 segundos antes de redirigir
+                return;
+            }
+
             showAlert(data.message || 'Ocurrió un error durante el registro', 'error');
             return;
         }
@@ -49,6 +62,10 @@ form.addEventListener('submit', async (e) => {
         showAlert('Registro exitoso. Revisa tu correo para verificar tu cuenta.', 'success');
 
         form.reset();
+
+        setTimeout(() => {
+            window.location.href = 'verificar-email.html';
+        }, 3000);
     } catch (err) {
         console.error(err);
         showAlert('Error de red o del servidor', 'error');
