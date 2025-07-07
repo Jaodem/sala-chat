@@ -1,7 +1,9 @@
 export function attachPasswordRules(inputElement) {
+    const wrapper = document.getElementById('password-rules-container');
+
     // Crear estructura
     const rules = document.createElement('ul');
-    rules.className = 'mt-2 text-sm text-gray-600 space-y-1 hidden';
+    rules.className = 'hidden mt-2 w-full text-sm text-gray-600 space-y-1 bg-white border rounded-xl p-2 shadow';
     rules.id = 'passwordRules';
 
     rules.innerHTML = `
@@ -12,8 +14,8 @@ export function attachPasswordRules(inputElement) {
         <li><span data-rule="symbol" class="mr-2 text-red-500">❌</span>Un símbolo especial (@$!%*#?&_-)</li>
     `;
 
-    // Insertar justo después del input
-    inputElement.parentNode.insertBefore(rules, inputElement.nextSibling);
+    // Insertar dentro del wrapper
+    wrapper.appendChild(rules);
 
     // Actualizar los ítems
     function updateRule(name, valid) {
@@ -42,6 +44,14 @@ export function attachPasswordRules(inputElement) {
     });
 
     inputElement.addEventListener('blur', () => {
-        setTimeout(() => rules.classList.add('hidden'), 100);
+        // Esperamos un momento y luego verificamos si el foco sigue en el input o en el botón
+        setTimeout(() => {
+            const active = document.activeElement;
+            const wrapper = inputElement.closest('#password-wrapper');
+
+            if (!wrapper.contains(active)) {
+                rules.classList.add('hidden');
+            }
+        }, 100);
     });
 }

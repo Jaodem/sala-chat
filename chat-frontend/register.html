@@ -13,6 +13,7 @@
 
         <!-- Formulario de Registro -->
         <form id="registerForm" class="space-y-4">
+            <!-- Username -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-gray-700">
                     Nombre de usuario
@@ -24,6 +25,7 @@
                     class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
                 />
             </div>
+            <!-- Email -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-gray-700">
                     Correo electrónico
@@ -35,29 +37,59 @@
                     class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
                 />
             </div>
+            <!-- Contraseña -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-gray-700">
                     Contraseña
                 </label>
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    required
-                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
-                />
+                <div>
+                    <div class="relative" id="password-wrapper">
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            required
+                            class="w-full pr-10 px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
+                        />
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            aria-label="Mostrar/ocular contraseña"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                            <!-- El ícono se insertará por JS -->
+                        </button>
+                    </div>
+                    <!-- 🔽 Este contenedor es importante -->
+                    <div id="password-rules-container"></div>
+                </div>
             </div>
+            <!-- Confirmar contraseña -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-gray-700">
                     Confirmar contraseña
                 </label>
-                <input
-                    type="password"
-                    name="confirmPassword"
-                    required
-                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
-                />
+                <div>
+                    <div class="relative" id="confirmPassword-wrapper">
+                        <input
+                            type="password"
+                            name="confirmPassword"
+                            id="confirmPassword"
+                            required
+                            class="w-full pr-10 px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
+                        />
+                        <button
+                            type="button"
+                            id="toggleConfirmPassword"
+                            aria-label="Mostrar/ocular contraseña"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        >
+                            <!-- El ícono se insertará por JS -->
+                        </button>
+                    </div>
+                </div>
             </div>
+            <!-- Botón de envío -->
             <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition duration-200">
                 Registrarse
             </button>

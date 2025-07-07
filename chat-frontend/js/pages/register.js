@@ -1,4 +1,5 @@
 import { attachPasswordRules } from "../components/passwordRules.js";
+import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');
@@ -7,6 +8,11 @@ const passwordInput = document.getElementById('password');
 
 // Activar validación visual de contraseña
 attachPasswordRules(passwordInput);
+
+// Mostrar/ocultar contraseñas (sin esperar DOMContentLoaded)
+addPasswordToggle("#password", "#togglePassword");
+addPasswordToggle("#confirmPassword", "#toggleConfirmPassword");
+
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
