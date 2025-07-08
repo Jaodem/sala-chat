@@ -1,5 +1,6 @@
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
+import { isPasswordValid } from "../utils/validatePasswordStrength.js";
 
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');
@@ -22,6 +23,12 @@ form.addEventListener('submit', async (e) => {
     const email = form.email.value.trim();
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
+
+    // Validación de fortaleza de la contraseña
+    if (!isPasswordValid(password)) {
+        showAlert('La contraseña no cumple con los requisitos mínimos de seguridad.', 'error');
+        return;
+    }
 
     // Validación simple de coincidencia de contraseñas
     if (password !== confirmPassword) {
@@ -61,7 +68,7 @@ form.addEventListener('submit', async (e) => {
                 );
 
                 setTimeout(() => {
-                    window.location.href ='login.html';
+                    window.location.href = 'login.html';
                 }, 4000);
                 return;
             }

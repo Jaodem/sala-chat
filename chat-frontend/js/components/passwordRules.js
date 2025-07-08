@@ -1,3 +1,5 @@
+import { isPasswordStrong } from "../utils/validatePasswordStrength.js";
+
 export function attachPasswordRules(inputElement) {
     const wrapper = document.getElementById('password-rules-container');
 
@@ -29,11 +31,10 @@ export function attachPasswordRules(inputElement) {
 
     // Lógica de validación
     function validate(password) {
-        updateRule('length', password.length >= 6);
-        updateRule('lower', /[a-z]/.test(password));
-        updateRule('upper', /[A-Z]/.test(password));
-        updateRule('number', /\d/.test(password));
-        updateRule('symbol', /[@$!%*#?&_\-]/.test(password));
+        const rulesStatus = isPasswordStrong(password);
+        for (const rule in rulesStatus) {
+            updateRule(rule, rulesStatus[rule]);
+        }
     }
 
     // Listeners
