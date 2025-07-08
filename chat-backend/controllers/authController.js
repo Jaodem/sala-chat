@@ -180,7 +180,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
 
     await user.save();
 
-    res.json({ message: 'Cuenta verificada correctamente' });
+    res.redirect(`http://localhost:5500/chat-frontend/confirmar-cuenta.html?token=${token}`);
 });
 
 // Reenvío de mail para verificar cuenta
