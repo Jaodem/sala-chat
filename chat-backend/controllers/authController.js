@@ -57,7 +57,11 @@ const registerUser = asyncHandler(async (req, res) => {
             });
         }
         
-        return res.status(400).json({ message: 'El email ya está registrado' });
+        // Respuesta para email ya verificado
+        return res.status(400).json({
+            message: 'Este usuario ya está registrado y confirmado. Redirigiendo al inicio de sesión...',
+            code: 'EMAIL_VERIFIED'
+        });
     }
 
     // Verificar si el nombre de usuario ya está en uso

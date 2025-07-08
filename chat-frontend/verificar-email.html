@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verificá tu correo | Sala Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md text-center space-y-4">
+    <h1 class="text-2xl font-bold text-gray-800">Verificá tu cuenta</h1>
+    
+    <p class="text-gray-600 text-sm">
+      Te enviamos un correo para verificar tu cuenta. Revisá tu bandeja de entrada y seguí las instrucciones.
+    </p>
+
+    <div id="emailInfo" class="text-gray-500 text-sm italic"></div>
+
+    <div id="alertContainer"></div>
+
+    <button
+      id="resendBtn"
+      class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition duration-200"
+    >
+      Reenviar correo de verificación
+    </button>
+
+    <p class="text-sm text-gray-600 mt-4">
+      ¿Ya verificaste tu cuenta?
+      <a href="login.html" class="text-blue-600 hover:underline">Iniciá sesión</a>
+    </p>
+  </div>
+
+  <script type="module" src="./js/pages/verificar-email.js"></script>
+</body>
+</html>

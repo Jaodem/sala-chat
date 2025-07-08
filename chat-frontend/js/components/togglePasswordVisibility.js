@@ -18,13 +18,13 @@ export function addPasswordToggle(inputSelector, toggleBtnSelector) {
     `;
 
     let visible = false;
-    toggleBtn.innerHTML = eyeIcon;
+    toggleBtn.innerHTML = eyeOffIcon;
 
     // Evento toggle
     toggleBtn.addEventListener('click', () => {
         visible = !visible;
         input.type = visible ? 'text' : 'password';
-        toggleBtn.innerHTML = visible ? eyeOffIcon : eyeIcon;
+        toggleBtn.innerHTML = visible ? eyeIcon : eyeOffIcon;
         input.focus();
     });
 }
