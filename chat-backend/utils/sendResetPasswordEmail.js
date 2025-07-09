@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 async function sendResetPasswordEmail(to, token) {
     const transporter = await getTransporter();
 
-    const resetUrl = `http://localhost:3000/api/auth/reset-password?token=${token}`;
+    const resetUrl = `http://localhost:5500/chat-frontend/restablecer-contraseña.html?token=${token}`;
 
     const mailOptions = {
         from: '"Sala Chat 👋" <no-reply@sala-chat.com>',

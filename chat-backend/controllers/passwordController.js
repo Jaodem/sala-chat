@@ -153,4 +153,22 @@ const changePassword = asyncHandler(async (req, res) => {
     res.json({ message: 'Contraseña actualizada correctamente' });
 });
 
-module.exports = { forgotPassword, resetPassword, resendResetPasswordEmail, changePassword };
+// Verificar si el token es válido antes de restablecer
+const verifyResetToken = asyncHandler(async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return res.status(400).json({ message: 'Token no proporcionado' });
+    }
+
+    const user = await User.findOne({ 'resetPasswordToken.token': token });
+
+    if (!user || user.resetPasswordToken.expiresAt < Date.now()) {
+        return res.status(400).json({ message: 'Token inválido o expirado' });
+    }
+
+    // Se puede retornar info útil como el username
+    return res.status(200).json({ username: user.username });
+});
+
+module.exports = { forgotPassword, resetPassword, resendResetPasswordEmail, changePassword, verifyResetToken, };
