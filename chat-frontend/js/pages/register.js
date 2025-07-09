@@ -1,6 +1,7 @@
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { isPasswordValid } from "../utils/validatePasswordStrength.js";
+import { showAlert } from "../utils/showAlert.js";
 
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');
@@ -26,13 +27,13 @@ form.addEventListener('submit', async (e) => {
 
     // Validación de fortaleza de la contraseña
     if (!isPasswordValid(password)) {
-        showAlert('La contraseña no cumple con los requisitos mínimos de seguridad.', 'error');
+        showAlert(alertContainer, 'La contraseña no cumple con los requisitos mínimos de seguridad.', 'error');
         return;
     }
 
     // Validación simple de coincidencia de contraseñas
     if (password !== confirmPassword) {
-        showAlert('Las contraseñas no coinciden', 'error');
+        showAlert(alertContainer, 'Las contraseñas no coinciden', 'error');
         return;
     }
 
@@ -51,6 +52,7 @@ form.addEventListener('submit', async (e) => {
             if (data.code === 'EMAIL_NOT_VERIFIED') {
                 sessionStorage.setItem('pendingEmail', email);
                 showAlert(
+                    alertContainer,
                     'Este correo ya está registrado pero no fue verificado. Te enviamos un nuevo email para confirmar tu cuenta. Redirigiendo a verificación...',
                     'info'
                 );
@@ -63,6 +65,7 @@ form.addEventListener('submit', async (e) => {
 
             if (data.code === 'EMAIL_VERIFIED') {
                 showAlert(
+                    alertContainer,
                     'Este correo ya está registrado y confirmado. Redirigiendo al inicio de sesión...',
                     'info'
                 );
@@ -73,13 +76,13 @@ form.addEventListener('submit', async (e) => {
                 return;
             }
 
-            showAlert(data.message || 'Ocurrió un error durante el registro', 'error');
+            showAlert(alertContainer, data.message || 'Ocurrió un error durante el registro', 'error');
             return;
         }
 
         // Registro exitoso
         sessionStorage.setItem('pendingEmail', email);
-        showAlert('Registro exitoso. Revisa tu correo para verificar tu cuenta.', 'success');
+        showAlert(alertContainer, 'Registro exitoso. Revisa tu correo para verificar tu cuenta. Redirigiendo a verificación...', 'success');
 
         form.reset();
 
@@ -88,21 +91,6 @@ form.addEventListener('submit', async (e) => {
         }, 3000);
     } catch (err) {
         console.error(err);
-        showAlert('Error de red o del servidor', 'error');
+        showAlert(alertContainer, 'Error de red o del servidor', 'error');
     }
 });
-
-// Función auxiliar para mostrar alertas
-function showAlert(message, type = 'info') {
-    const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue';
-
-    alertContainer.innerHTML = `
-        <div class="p-3 rounded-xl text-${color}-800 bg-${color}-100 border border-${color}-300 text-sm">
-        ${message}
-        </div>
-    `;
-
-    setTimeout(() => {
-        alertContainer.innerHTML = '';
-    }, 5000);
-}

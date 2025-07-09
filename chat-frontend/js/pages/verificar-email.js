@@ -1,4 +1,5 @@
 import { startCountdown } from "../utils/countdownButton.js";
+import { showAlert } from "../utils/showAlert.js";
 
 const resendBtn = document.getElementById('resendBtn');
 const alertContainer = document.getElementById('alertContainer');
@@ -36,31 +37,16 @@ resendBtn.addEventListener('click', async () => {
     const data = await response.json();
 
     if (!response.ok) {
-      showAlert(data.message || 'Error al reenviar el correo', 'error');
+      showAlert(alertContainer, data.message || 'Error al reenviar el correo', 'error');
       return;
     }
 
-    showAlert('Correo reenviado con éxito. Revisá tu bandeja de entrada.', 'success');
+    showAlert(alertContainer, 'Correo reenviado con éxito. Revisá tu bandeja de entrada.', 'success');
   } catch (err) {
     console.error(err);
-    showAlert('Error de red o del servidor', 'error');
+    showAlert(alertContainer, 'Error de red o del servidor', 'error');
   }
 });
-
-// Función para mostrar alertas
-function showAlert(message, type = 'info') {
-  const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue';
-
-  alertContainer.innerHTML = `
-    <div class="mt-4 p-3 rounded-xl text-${color}-800 bg-${color}-100 border border-${color}-300 text-sm">
-      ${message}
-    </div>
-  `;
-
-  setTimeout(() => {
-    alertContainer.innerHTML = '';
-  }, 5000);
-}
 
 // Función auxiliar para desactivar el botón si no hay correo
 function disableResendButton() {

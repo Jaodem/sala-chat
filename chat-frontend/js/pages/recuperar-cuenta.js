@@ -1,4 +1,5 @@
 import { startCountdown } from "../utils/countdownButton.js";
+import { showAlert } from "../utils/showAlert.js";
 
 const form = document.getElementById('recoveryForm');
 const emailInput = document.getElementById('email');
@@ -14,7 +15,7 @@ form.addEventListener('submit', async (e) => {
     const email = emailInput.value.trim();
 
     if (!email) {
-        showAlert('Por favor ingresá un correo electrónico válido.', 'error');
+        showAlert(alertContainer, 'Por favor ingresá un correo electrónico válido.', 'error');
         return;
     }
 
@@ -33,29 +34,14 @@ form.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (!response.ok) {
-            showAlert(data.message || 'Ocurrió un error al solicitar el enlace.', 'error');
+            showAlert(alertContainer, data.message || 'Ocurrió un error al solicitar el enlace.', 'error');
             return;
         }
 
-        showAlert('Si tu email está registrado, recibirás un enlace para restablecer tu contraseña.', 'success');
+        showAlert(alertContainer, 'Si tu email está registrado, recibirás un enlace para restablecer tu contraseña.', 'success');
         form.reset();
     } catch (error) {
         console.error(error);
-        showAlert('Error de red o del servidor', 'error');
+        showAlert(alertContainer, 'Error de red o del servidor', 'error');
     }
 });
-
-// Mostrar alerta
-function showAlert(message, type = 'info') {
-    const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue';
-
-    alertContainer.innerHTML = `
-        <div class="mt-4 p-3 rounded-xl text-${color}-800 bg-${color}-100 border border-${color}-300 text-sm">
-        ${message}
-        </div>
-    `;
-
-    setTimeout(() => {
-        alertContainer.innerHTML = '';
-    }, 6000);
-}
