@@ -14,6 +14,7 @@ if (pendingEmail) {
   disableResendButton();
 }
 
+// Establecer texto inicial
 resendBtn.textContent = 'Reenviar correo de verificación'
 
 // Reenviar correo
