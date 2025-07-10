@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer contraseña | Sala Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md space-y-4">
+        <h1 class="text-2xl font-bold text-center text-gray-800">
+            Restablecer contraseña
+        </h1>
+
+        <!-- Contenedor donde se muestra si el token es inválido -->
+        <div id="tokenError" class="hidden text-red-600 text-center font-medium"></div>
+
+        <!-- Info del usuario (si el token es válido) -->
+        <p id="usernameInfo" class="text-sm text-center text-gray-600">
+            <!-- username -->
+        </p>
+
+        <form id="resetForm" class="space-y-4 hidden">
+            <div>
+                <label
+                    for="password"
+                    class="block text-sm font-medium text-gray-700"
+                >
+                    Nueva contraseña
+                </label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required
+                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10" />
+                    <button type="button" id="togglePassword" aria-label="Mostrar/ocultar"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                        <!-- El ícono se insertará por JS -->
+                        👁️
+                    </button>
+                </div>
+                <!-- Contenedor para las reglas -->
+                <div id="password-rules-container"></div>
+            </div>
+
+            <div>
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+                    Confirmar contraseña
+                </label>
+                <div class="relative">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10" />
+                    <button type="button" id="toggleConfirmPassword" aria-label="Mostrar/ocultar"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                        <!-- El ícono se insertará por JS -->
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition duration-200"
+            >
+                Restablecer contraseña
+            </button>
+        </form>
+
+        <div id="alertContainer"></div>
+
+        <p class="text-sm text-center text-gray-600">
+            <a href="login.html" class="text-blue-600 hover:underline">
+                Volvé al inicio
+            </a>
+        </p>
+    </div>
+
+    <script type="module" src="./js/pages/restablecer-contraseña.js"></script>
+</body>
+</html>
