@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cambiar contraseña | Sala Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md space-y-4">
+        <h1 class="text-2xl font-bold text-center text-gray-800">
+            Cambiar contraseña
+        </h1>
+
+        <form id="changePasswordForm" class="space-y-4">
+            <div>
+                <label for="currentPassword" class="block text-sm font-medium text-gray-700">
+                    Contraseña actual
+                </label>
+                <div class="relative">
+                    <input type="password" name="currentPassword" id="currentPassword" required
+                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    <button type="button" id="toggleCurrentPassword" aria-label="Mostrar/ocular contraseña"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                        <!-- El ícono se insertará por JS -->
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label for="newPassword" class="block text-sm font-medium text-gray-700">
+                    Nueva contraseña
+                </label>
+                <div class="relative">
+                    <input type="password" name="newPassword" id="newPassword" required
+                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    <button type="button" id="toggleNewPassword" aria-label="Mostrar/ocular contraseña"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                        <!-- El ícono se insertará por JS -->
+                    </button>
+                </div>
+                <!-- Contenedor para las reglas -->
+                <div id="password-rules-container"></div>
+            </div>
+
+            <div>
+                <label for="confirmNewPassword" class="block text-sm font-medium text-gray-700">
+                    Confirmar nueva contraseña
+                </label>
+                <div class="relative">
+                    <input type="password" name="confirmNewPassword" id="confirmNewPassword" required
+                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    <button type="button" id="toggleconfirmNewPassword" aria-label="Mostrar/ocular contraseña"
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                        <!-- El ícono se insertará por JS -->
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition duration-200">
+                Guardar cambios
+            </button>
+        </form>
+
+        <div id="alertContainer"></div>
+
+        <p class="text-sm text-center text-gray-600">
+            <a href="perfil.html" class="text-blue-600 hover:underline">
+                Volver al perfil
+            </a>
+        </p>
+    </div>
+
+    <script type="module" src="./js/pages/cambiar-contraseña.js"></script>
+</body>
+
+</html>
