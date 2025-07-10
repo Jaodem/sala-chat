@@ -8,5 +8,5 @@ const token = params.get('token');
 messageEl.textContent = '¡Cuenta verificada con éxito! Redirigiendo al inicio de sesión...';
 
 setTimeout(() => {
-  window.location.href = "'login.html";
+  window.location.href = 'login.html';
 }, 3000);
