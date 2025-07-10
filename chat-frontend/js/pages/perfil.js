@@ -1,15 +1,15 @@
 import { showAlert } from "../utils/showAlert.js";
+import { redirectIfNotLoggedIn, getToken, logout } from "../utils/checkAuth.js";
+
+// Redireccionar en caso de no estar logueado
+redirectIfNotLoggedIn();
 
 const userInfoDiv = document.getElementById('userInfo');
 const logoutBtn = document.getElementById('logoutBtn');
 const deleteBtn = document.getElementById('deleteAccountBtn');
-const token = localStorage.getItem('token');
+const token = getToken();
 
-if (!token) {
-  window.location.href = 'login.html';
-}
-
-;(async function getUserInfo() {
+(async function getUserInfo() {
   try {
     const res = await fetch('http://localhost:3000/api/users/me', {
       headers: {
@@ -36,7 +36,7 @@ if (!token) {
 
 // Cerrar sesión
 logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('token');
+  logout();
   window.location.href = 'index.html';
 });
 
@@ -70,7 +70,7 @@ deleteBtn.addEventListener('click', async () => {
       return;
     }
 
-    localStorage.removeItem('token');
+    logout();
     alert('Cuenta eliminada correctamente. ¡Te esperamos nuevamente!');
     window.location.href = 'index.html';
   } catch (err) {

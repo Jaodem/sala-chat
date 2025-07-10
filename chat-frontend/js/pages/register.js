@@ -1,7 +1,11 @@
+import { redirectIfLoggedIn } from "../utils/checkAuth.js";
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { isPasswordValid } from "../utils/validatePasswordStrength.js";
 import { showAlert } from "../utils/showAlert.js";
+
+// Se redirecciona si el usuario ya está logueado
+redirectIfLoggedIn();
 
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');

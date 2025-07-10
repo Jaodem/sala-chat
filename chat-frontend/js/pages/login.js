@@ -1,5 +1,9 @@
+import { redirectIfLoggedIn } from "../utils/checkAuth.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { showAlert } from "../utils/showAlert.js";
+
+// Se redirecciona si el usuario ya está logueado
+redirectIfLoggedIn();
 
 const form = document.getElementById('loginForm');
 const alertCotaniner = document.getElementById('alertContainer');

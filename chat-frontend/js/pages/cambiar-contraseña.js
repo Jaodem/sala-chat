@@ -2,6 +2,10 @@ import { showAlert } from "../utils/showAlert.js";
 import { isPasswordValid } from "../utils/validatePasswordStrength.js";
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
+import { redirectIfNotLoggedIn, getToken } from "../utils/checkAuth.js";
+
+// Redireccionar en caso de no estar logueado
+redirectIfNotLoggedIn();
 
 // Elementos del DOM
 const form = document.getElementById('changePasswordForm');
@@ -40,7 +44,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await fetch('http://localhost:3000/api/auth/change-password', {
             method: 'PATCH',
             headers: {
