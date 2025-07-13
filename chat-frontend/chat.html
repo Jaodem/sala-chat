@@ -49,7 +49,7 @@
             </header>
 
             <!-- Mensajes: crecen y hacen scroll -->
-            <div id="messageContainer" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-100">
+            <div id="messageContainer" class="flex flex-col gap-2 p-4 overflow-y-auto h-full">
                 <!-- Mensajes renderizados por JS -->
             </div>
 
@@ -58,7 +58,7 @@
                 <input type="text" id="messageInput" placeholder="Escribí tu mensaje..."
                     class="flex-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300"
                     autocomplete="off" />
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition">
+                <button id="sendBtn" type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition">
                     Enviar
                 </button>
             </form>

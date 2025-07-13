@@ -29,6 +29,7 @@ module.exports = async (socket, io) => {
 
     // Manejar recepción de mensajes privados
     socket.on('send-message', async (data) => {
+        console.log('🟡  LLEGÓ del cliente →', data);   //  👈 añade esto
         await sendPrivateMessage(data, { socket, io, userId, username });
     });
 

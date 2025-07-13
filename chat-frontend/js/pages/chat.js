@@ -20,6 +20,7 @@ const statusMessage = document.getElementById('statusMessage');
 
 let currentUserId = null; // nuestro userId
 let selectedUserId = null; // Usuario con quien se chatea
+let selectedUser = null;   // Se guarda el objeto completo
 let users = []; // Lista de usuarios conectados
 
 // Estados de conexión
@@ -40,7 +41,7 @@ function showStatusMessage(text, type = 'info') {
 function sortAndFilter(list) {
     return list
         .filter((u) => u.userId !== currentUserId)
-        .sort((a, b) => 
+        .sort((a, b) =>
             a.username.localeCompare(b.username, 'es', { sensitivity: 'base' })
         );
 }
@@ -62,6 +63,7 @@ function renderUserList() {
     filtered.forEach((user) => {
         const li = document.createElement('li');
         li.textContent = user.username;
+        li.dataset.uid = user.userId;
         li.classList.add('p-3', 'cursor-pointer', 'hover:bg-gray-200');
 
         // Si es el usuario seleccionado, cambiar estilo
@@ -70,6 +72,7 @@ function renderUserList() {
         }
 
         li.addEventListener('click', () => {
+            selectedUser = user;
             selectedUserId = user.userId;
             chatWith.textContent = `Chat con ${user.username}`;
             renderUserList();
@@ -137,3 +140,88 @@ logoutBtn.addEventListener('click', () => {
     logout();
     window.location.href = 'index.html';
 });
+
+// Envío de mensajes
+const messageForm = document.getElementById('messageForm');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+
+messageForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const text = messageInput.value.trim();
+    if (!text || !selectedUser) return;
+
+    console.log('emit →', { text, selectedUserId, toUsername:
+        users.find(u => u.userId === selectedUserId)?.username });
+
+    socket.emit('send-message', {
+        toUserId: selectedUser.userId,
+        toUsername: selectedUser.username,
+        message: text
+    });
+
+    messageInput.value = '';
+    messageInput.focus();
+});
+
+// Recibir mensaje
+socket.on('private-message', (payload) => {
+    /*
+        payload = {
+            userId,          // emisor
+            username,
+            toUserId,
+            toUsername,
+            message,
+            createdAt
+        }
+    */
+    const isOwn = payload.userId === currentUserId;
+    // Verificar si el mensaje pertenece al chat que está abierto
+    const talkingWith = isOwn ? payload.toUserId : payload.userId;
+    const isForCurrentConversation = talkingWith === selectedUserId;
+
+    if (isForCurrentConversation) appendMessageBubble(payload.message, payload.createdAt, isOwn);
+    else markUserAsUnread(talkingWith);
+});
+
+// No leído
+function markUserAsUnread(userId) {
+    const li = [...userList.children].find(el => el.dataset.uid === userId);
+    if (li && !li.querySelector('.dot')) {
+        const dot = document.createElement('span');
+        dot.className = 'dot inline-block w-2 h-2 bg-red-500 rounded-full ml-2';
+        li.appendChild(dot);
+        li.classList.add('bg-yellow-200');
+    }
+}
+
+// Pintar burbujas
+function appendMessageBubble(text, isoDate, isOwn) {
+    const bubble = document.createElement('div');
+    bubble.classList.add(
+        'max-w-[70%]', 'px-4', 'py-2', 'rounded-xl', 'shadow',
+        'text-sm', 'break-words',
+        ...(isOwn
+            ? ['bg-blue-600', 'text-white', 'self-end']
+            : ['bg-gray-200', 'text-gray-800', 'self-start'])
+    );
+    bubble.innerHTML = `
+        <p>${text}</p>
+        <span class="block text-[10px] mt-1 opacity-70 ${isOwn ? 'text-right' : ''}">
+        ${formatTime(isoDate)}
+        </span>
+    `;
+
+    messageContainer.appendChild(bubble);
+
+    // Auto-scroll
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+}
+
+// Helper hh:mm
+function formatTime(dateString) {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
