@@ -23,6 +23,9 @@ let selectedUserId = null; // Usuario con quien se chatea
 let selectedUser = null;   // Se guarda el objeto completo
 let users = []; // Lista de usuarios conectados
 
+// Set con usuarios que tienen mensajes pendientes
+const unread = new Set();
+
 // Estados de conexión
 function showStatusMessage(text, type = 'info') {
     statusMessage.textContent = text;
@@ -40,7 +43,7 @@ function showStatusMessage(text, type = 'info') {
 
 function sortAndFilter(list) {
     return list
-        .filter((u) => u.userId !== currentUserId)
+        .filter(u => u.userId !== currentUserId)
         .sort((a, b) =>
             a.username.localeCompare(b.username, 'es', { sensitivity: 'base' })
         );
@@ -55,27 +58,47 @@ function renderUserList() {
     if (filtered.length === 0) {
         const li = document.createElement('li');
         li.textContent = 'No hay otros usuarios conectados';
-        li.classList.add('p-3', 'text-sm', 'text-gray-500', 'italic');
+        li.className = 'p-3 text-sm text-gray-500 italic';
         userList.appendChild(li);
         return;
     }
 
-    filtered.forEach((user) => {
+    filtered.forEach(user => {
         const li = document.createElement('li');
-        li.textContent = user.username;
         li.dataset.uid = user.userId;
-        li.classList.add('p-3', 'cursor-pointer', 'hover:bg-gray-200');
+        li.className = 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200';
 
-        // Si es el usuario seleccionado, cambiar estilo
+        // Puntito rojo si esta en unread
+        if (unread.has(user.userId)) {
+            const dot = document.createElement('span');
+            dot.className = 'dot inline-block w-2 h-2 bg-red-500 rounded-full';
+            li.appendChild(dot);
+            li.classList.add('bg-yellow-200');
+        }
+
+        // Username
+        const span = document.createElement('span');
+        span.textContent = user.username;
+        li.appendChild(span);
+
+        // Resaltado si es el chat abierto
         if (user.userId === selectedUserId) {
             li.classList.add('bg-blue-100', 'font-semibold');
         }
 
         li.addEventListener('click', () => {
+            // Actualizar el chat seleccionado
             selectedUser = user;
             selectedUserId = user.userId;
             chatWith.textContent = `Chat con ${user.username}`;
+
+            // Al abrir el chat se quita la notificación
+            unread.delete(user.userId);
+
+            // Refrescar la lista
             renderUserList();
+
+            // Se trae el historial con ese chat
             loadChatMessages(user.userId);
         });
 
@@ -83,10 +106,44 @@ function renderUserList() {
     });
 }
 
-// Cargar mensajes (placeholder)
-function loadChatMessages(userId) {
-    messageContainer.innerHTML = `<p class="text-gray-500">Cargando mensajes con ${userId}...</p>`;
-    // Aquí luego implementaremos la carga real de mensajes (fetch al backend)
+// Marcar usuario con mensaje no leído
+function markUserAsUnread(userId) {
+    if (userId !== selectedUserId) { // Sólo si no es el chat activo
+        unread.add(userId);
+        renderUserList(); // Se redibuja con el puntito
+    }
+}
+
+// Cargar mensajes desde el backend
+async function loadChatMessages(userId) {
+    messageContainer.innerHTML = '';
+    
+    try {
+        const res = await fetch(`http://localhost:3000/api/chat/history/${userId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (!res.ok) {
+            messageContainer.innerHTML =
+                '<p class="text-red-500">No se pudo cargar el historial.</p>';
+            return;
+        }
+
+        const { data: message } = await res.json();
+
+        message.forEach((msg) => {
+            const isOwn = msg.userId === currentUserId;
+            appendMessageBubble(msg.message, msg.createdAt, isOwn);
+        });
+
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    } catch (error) {
+        console.error('Error al cargar historial:', error);
+        messageContainer.innerHTML =
+            '<p class="text-red-500">Error de red al cargar historial.</p>';
+    }
 }
 
 // Eventos del socket
@@ -180,22 +237,11 @@ socket.on('private-message', (payload) => {
     const isOwn = payload.userId === currentUserId;
     // Verificar si el mensaje pertenece al chat que está abierto
     const talkingWith = isOwn ? payload.toUserId : payload.userId;
-    const isForCurrentConversation = talkingWith === selectedUserId;
+    const isForCurrentConversation = selectedUserId && talkingWith === selectedUserId;
 
     if (isForCurrentConversation) appendMessageBubble(payload.message, payload.createdAt, isOwn);
     else markUserAsUnread(talkingWith);
 });
-
-// No leído
-function markUserAsUnread(userId) {
-    const li = [...userList.children].find(el => el.dataset.uid === userId);
-    if (li && !li.querySelector('.dot')) {
-        const dot = document.createElement('span');
-        dot.className = 'dot inline-block w-2 h-2 bg-red-500 rounded-full ml-2';
-        li.appendChild(dot);
-        li.classList.add('bg-yellow-200');
-    }
-}
 
 // Pintar burbujas
 function appendMessageBubble(text, isoDate, isOwn) {
