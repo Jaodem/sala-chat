@@ -133,8 +133,17 @@ async function loadChatMessages(userId) {
 
         const { data: message } = await res.json();
 
-        message.forEach((msg) => {
+        let lastDate = null;
+
+        message.forEach(msg => {
             const isOwn = msg.userId === currentUserId;
+
+            const msgDate = new Date(msg.createdAt).toDateString();
+            if (msgDate !== lastDate) {
+                appendDateSeparator(formatDateSeparator(msg.createdAt));
+                lastDate = msgDate;
+            }
+
             appendMessageBubble(msg.message, msg.createdAt, isOwn);
         });
 
@@ -293,4 +302,32 @@ function formatTime(dateString) {
     });
 
     return `${time} ${date}`;
+}
+
+// Se formatea las fechas como separador en el chat
+function formatDateSeparator(dateString) {
+    const today = new Date();
+    const msgDate = new Date(dateString);
+
+    const isToday = msgDate.toDateString() === today.toDateString();
+
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const isYesterday = msgDate.toDateString() === yesterday.toDateString();
+
+    if (isToday) return 'Hoy';
+    if (isYesterday) return 'Ayer';
+
+    return msgDate.toLocaleDateString('es-AR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+}
+
+function appendDateSeparator(text) {
+    const separator = document.createElement('div');
+    separator.className = 'text-xs text-gray-500 text-center my-4 select-none';
+    separator.textContent = `───── ${text} ─────`;
+    messageContainer.appendChild(separator);
 }
