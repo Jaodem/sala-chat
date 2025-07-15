@@ -266,8 +266,31 @@ function appendMessageBubble(text, isoDate, isOwn) {
     messageContainer.scrollTop = messageContainer.scrollHeight;
 }
 
-// Helper hh:mm
+// Helper, devuelve hh:mm si es hoy, de lo contrario
 function formatTime(dateString) {
     const d = new Date(dateString);
-    return d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+    // Verificar si el mensaje es de hoy
+    const today = new Date();
+    const isToday =
+        d.getDate() === today.getDate() &&
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear();
+
+    // Para aplicar el formato 24 h con 2 dígitos
+    const time = d.toLocaleTimeString('es-AR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    if (isToday) return time;
+
+    // Fecha + hora para días anteriores
+    const date = d.toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+
+    return `${time} ${date}`;
 }
