@@ -22,6 +22,7 @@ let currentUserId = null; // nuestro userId
 let selectedUserId = null; // Usuario con quien se chatea
 let selectedUser = null;   // Se guarda el objeto completo
 let users = []; // Lista de usuarios conectados
+let lastMessagesByUser = new Map(); // userId => { text, createdAt }
 
 // Set con usuarios que tienen mensajes pendientes
 const unread = new Set();
@@ -68,6 +69,19 @@ function renderUserList() {
         li.dataset.uid = user.userId;
         li.className = 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200';
 
+        // Contenedor horizontal con nombre y puntito
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-center justify-between';
+
+        // Nombre de usuario
+        const usernameSpan = document.createElement('span');
+        usernameSpan.textContent = user.username;
+        if (user.userId === selectedUserId) {
+            usernameSpan.classList.add('font-semibold', 'text-blue-800');
+            li.classList.add('bg-blue-100');
+        }
+        topRow.appendChild(usernameSpan);
+
         // Puntito rojo si esta en unread
         if (unread.has(user.userId)) {
             const dot = document.createElement('span');
@@ -76,14 +90,16 @@ function renderUserList() {
             li.classList.add('bg-yellow-200');
         }
 
-        // Username
-        const span = document.createElement('span');
-        span.textContent = user.username;
-        li.appendChild(span);
+        li.appendChild(topRow);
 
-        // Resaltado si es el chat abierto
-        if (user.userId === selectedUserId) {
-            li.classList.add('bg-blue-100', 'font-semibold');
+        // Último mensaje si es que hay
+        const lastMsg = lastMessagesByUser.get(user.userId);
+        if (lastMsg) {
+            const preview = document.createElement('span');
+            preview.className = 'text-sm text-gray-600 truncate';
+            const time = formatTime(lastMsg.createdAt);
+            preview.textContent = `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`;
+            li.appendChild(preview);
         }
 
         li.addEventListener('click', () => {
@@ -134,6 +150,7 @@ async function loadChatMessages(userId) {
         const { data: message } = await res.json();
 
         let lastDate = null;
+        let lastBubble = null; // Una referencia al último nodo
 
         message.forEach(msg => {
             const isOwn = msg.userId === currentUserId;
@@ -143,11 +160,14 @@ async function loadChatMessages(userId) {
                 appendDateSeparator(formatDateSeparator(msg.createdAt));
                 lastDate = msgDate;
             }
-
-            appendMessageBubble(msg.message, msg.createdAt, isOwn);
+            
+            // Se guarda lo que devuelve appendMessageBubble
+            lastBubble = appendMessageBubble(msg.message, msg.createdAt, isOwn);
         });
 
-        messageContainer.scrollTop = messageContainer.scrollHeight;
+        requestAnimationFrame(() => {
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        });
     } catch (error) {
         console.error('Error al cargar historial:', error);
         messageContainer.innerHTML =
@@ -248,8 +268,16 @@ socket.on('private-message', (payload) => {
     const talkingWith = isOwn ? payload.toUserId : payload.userId;
     const isForCurrentConversation = selectedUserId && talkingWith === selectedUserId;
 
+    // Guardar el último mensaje
+    lastMessagesByUser.set(talkingWith, {
+        text: payload.message,
+        createdAt: payload.createdAt
+    });
+
     if (isForCurrentConversation) appendMessageBubble(payload.message, payload.createdAt, isOwn);
     else markUserAsUnread(talkingWith);
+
+    renderUserList(); // Para resfrescar texto
 });
 
 // Pintar burbujas
@@ -265,14 +293,12 @@ function appendMessageBubble(text, isoDate, isOwn) {
     bubble.innerHTML = `
         <p>${text}</p>
         <span class="block text-[10px] mt-1 opacity-70 ${isOwn ? 'text-right' : ''}">
-        ${formatTime(isoDate)}
+            ${formatTime(isoDate)}
         </span>
     `;
 
     messageContainer.appendChild(bubble);
-
-    // Auto-scroll
-    messageContainer.scrollTop = messageContainer.scrollHeight;
+    return bubble; 
 }
 
 // Helper, devuelve hh:mm si es hoy, de lo contrario
