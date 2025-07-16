@@ -17,6 +17,7 @@ const messageContainer = document.getElementById('messageContainer');
 const chatWith = document.getElementById('chatWith');
 const logoutBtn = document.getElementById('logoutBtn');
 const statusMessage = document.getElementById('statusMessage');
+const scrollBtn = document.getElementById('scrollToBottomBtn');
 
 let currentUserId = null; // nuestro userId
 let selectedUserId = null; // Usuario con quien se chatea
@@ -85,7 +86,7 @@ function renderUserList() {
         // Puntito rojo si esta en unread
         if (unread.has(user.userId)) {
             const dot = document.createElement('span');
-            dot.className = 'dot inline-block w-2 h-2 bg-red-500 rounded-full';
+            dot.className = 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2';
             li.appendChild(dot);
             li.classList.add('bg-yellow-200');
         }
@@ -238,7 +239,7 @@ messageForm.addEventListener('submit', (e) => {
     const text = messageInput.value.trim();
     if (!text || !selectedUser) return;
 
-    console.log('emit →', { text, selectedUserId, toUsername:
+    console.log('emit →', {text, selectedUserId, toUsername:
         users.find(u => u.userId === selectedUserId)?.username });
 
     socket.emit('send-message', {
@@ -249,6 +250,15 @@ messageForm.addEventListener('submit', (e) => {
 
     messageInput.value = '';
     messageInput.focus();
+
+    // Ir al final al enviar mensaje
+    requestAnimationFrame(() => {
+        messageContainer.scrollTo({
+            top: messageContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+        scrollBtn.classList.add('hidden');
+    });
 });
 
 // Recibir mensaje
@@ -282,6 +292,7 @@ socket.on('private-message', (payload) => {
 
 // Pintar burbujas
 function appendMessageBubble(text, isoDate, isOwn) {
+    // Burbuja
     const bubble = document.createElement('div');
     bubble.classList.add(
         'max-w-[70%]', 'px-4', 'py-2', 'rounded-xl', 'shadow',
@@ -296,8 +307,18 @@ function appendMessageBubble(text, isoDate, isOwn) {
             ${formatTime(isoDate)}
         </span>
     `;
-
     messageContainer.appendChild(bubble);
+
+    // Auto-scroll
+    if (isOwn || isNearBottom(messageContainer)) {
+        scrollToBotom({
+            smooth: true
+        });
+        hideScrollBtn(); // Se oculta cuando termina
+    } else {
+        scrollBtn.classList.remove('hidden');
+    }
+
     return bubble; 
 }
 
@@ -357,3 +378,35 @@ function appendDateSeparator(text) {
     separator.textContent = `───── ${text} ─────`;
     messageContainer.appendChild(separator);
 }
+
+function isNearBottom(elem, offset = 80) {
+    return elem.scrollTop + elem.clientHeight >= elem.scrollHeight - offset;
+}
+
+function scrollToBotom({ smooth = true } = {}) {
+    // Forzar re-flow para tener el scrollHeight definitivo
+    void messageContainer.offsetHeight; // Trigger reflow
+    messageContainer.scrollTo({
+        top: messageContainer.scrollHeight,
+        behavior: smooth ? 'smooth' : 'auto'
+    });
+}
+
+function hideScrollBtn(delay = 350) {
+    setTimeout(() =>
+        scrollBtn.classList.add('hidden'),
+    delay);
+}
+
+messageContainer.addEventListener('scroll', () => {    
+    if (isNearBottom(messageContainer)) {
+        scrollBtn.classList.add('hidden'); // si llega abajo, ocultamos el botón
+    }
+});
+
+scrollBtn.addEventListener('click', () => {
+    scrollToBotom({
+        smooth: true
+    });
+    hideScrollBtn(0); // Se lo oculta inmediatamente
+});
