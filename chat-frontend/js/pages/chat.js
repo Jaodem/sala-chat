@@ -28,6 +28,10 @@ let lastMessagesByUser = new Map(); // userId => { text, createdAt }
 const sentMessages = new Map(); // messageId => DOMNode
 const pendingConfirmations = new Map(); // messageId => true
 
+// Para el uso de emoji
+const emojiToggle = document.getElementById('emojiToggle');
+const emojiPicker = document.getElementById('emojiPicker');
+
 // Set con usuarios que tienen mensajes pendientes
 const unread = new Set();
 
@@ -257,6 +261,9 @@ messageForm.addEventListener('submit', (e) => {
         toUsername: selectedUser.username,
         message: text
     });
+
+    // Ocultar el selector de emojis al enviar
+    emojiPicker.classList.add('hidden');
 
     messageInput.value = '';
     messageInput.focus();
@@ -516,4 +523,29 @@ socket.on('message-received', ({ messageId }) => {
     }
 
     statusEl.textContent = '✓✓';
+});
+
+// Alternar visibilidad del selector de emojis
+emojiToggle.addEventListener('click', () => {
+    emojiPicker.classList.toggle('hidden');
+});
+
+// Insertar emoji en el input cuando se selecciona
+emojiPicker.addEventListener('emoji-click', event => {
+    const emoji = event.detail.unicode;
+    messageInput.value += emoji;
+    messageInput.focus();
+});
+
+// Para cerrar picker con la tecla escape
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !emojiPicker.classList.contains('hidden')) emojiPicker.classList.add('hidden');
+});
+
+// Para cerrar picker haciendo click fuera de él
+document.addEventListener('click', event => {
+    const isClickInsidePicker = emojiPicker.contains(event.target);
+    const isClickOnToggle = emojiToggle.contains(event.target);
+
+    if (!isClickInsidePicker && !isClickOnToggle) emojiPicker.classList.add('hidden');
 });
