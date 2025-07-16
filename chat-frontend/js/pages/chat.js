@@ -25,6 +25,9 @@ let selectedUser = null;   // Se guarda el objeto completo
 let users = []; // Lista de usuarios conectados
 let lastMessagesByUser = new Map(); // userId => { text, createdAt }
 
+const sentMessages = new Map(); // messageId => DOMNode
+const pendingConfirmations = new Map(); // messageId => true
+
 // Set con usuarios que tienen mensajes pendientes
 const unread = new Set();
 
@@ -151,7 +154,6 @@ async function loadChatMessages(userId) {
         const { data: message } = await res.json();
 
         let lastDate = null;
-        let lastBubble = null; // Una referencia al último nodo
 
         message.forEach(msg => {
             const isOwn = msg.userId === currentUserId;
@@ -161,9 +163,17 @@ async function loadChatMessages(userId) {
                 appendDateSeparator(formatDateSeparator(msg.createdAt));
                 lastDate = msgDate;
             }
-            
-            // Se guarda lo que devuelve appendMessageBubble
-            lastBubble = appendMessageBubble(msg.message, msg.createdAt, isOwn);
+
+            const bubble = appendMessageBubble(msg.message, msg.createdAt, isOwn, msg._id);
+
+            // Se emite confirmación de lectura si el mensaje es ajeno
+            if (!isOwn) {
+                socket.emit('message-received', {
+                    messageId: msg._id,
+                    toUserId: msg.userId
+                });
+                console.log('📤 Confirmación emitida por historial:', msg._id);
+            }
         });
 
         requestAnimationFrame(() => {
@@ -273,7 +283,13 @@ socket.on('private-message', (payload) => {
             createdAt
         }
     */
+    console.log('📩 Recibido mensaje con ID:', payload.messageId);
+   
     const isOwn = payload.userId === currentUserId;
+
+    console.log('👤 currentUserId:', currentUserId, '| payload.userId:', payload.userId);
+    console.log('🤔 Es mío?', isOwn);
+
     // Verificar si el mensaje pertenece al chat que está abierto
     const talkingWith = isOwn ? payload.toUserId : payload.userId;
     const isForCurrentConversation = selectedUserId && talkingWith === selectedUserId;
@@ -284,14 +300,27 @@ socket.on('private-message', (payload) => {
         createdAt: payload.createdAt
     });
 
-    if (isForCurrentConversation) appendMessageBubble(payload.message, payload.createdAt, isOwn);
-    else markUserAsUnread(talkingWith);
+    if (isForCurrentConversation) appendMessageBubble(payload.message, payload.createdAt, isOwn, payload.messageId);
+    else {
+        markUserAsUnread(talkingWith);
+
+        // Se guarda también si es de uno, aunque no este visible
+        if (isOwn) appendMessageBubble(payload.message, payload.createdAt, true, payload.messageId);
+    }
+
+    if (!isOwn && isForCurrentConversation) {
+        console.log('📤 Emitiendo confirmación de recepción:', payload.messageId);
+        socket.emit('message-received', {
+            messageId: payload.messageId,
+            toUserId: payload.userId
+        });
+    }
 
     renderUserList(); // Para resfrescar texto
 });
 
 // Pintar burbujas
-function appendMessageBubble(text, isoDate, isOwn) {
+function appendMessageBubble(text, isoDate, isOwn, messageId = null) {
     // Burbuja
     const bubble = document.createElement('div');
     bubble.classList.add(
@@ -301,13 +330,34 @@ function appendMessageBubble(text, isoDate, isOwn) {
             ? ['bg-blue-600', 'text-white', 'self-end']
             : ['bg-gray-200', 'text-gray-800', 'self-start'])
     );
+
+    // Ícono de estado de tilde y dobe tilde
+    const status = isOwn && messageId
+        ? `<span class="ml-1 text-xs align-bottom opacity-70" data-mid="${messageId}">✓</span>`
+        : '';
+
     bubble.innerHTML = `
         <p>${text}</p>
         <span class="block text-[10px] mt-1 opacity-70 ${isOwn ? 'text-right' : ''}">
-            ${formatTime(isoDate)}
+            ${formatTime(isoDate)} ${status}
         </span>
     `;
+
     messageContainer.appendChild(bubble);
+
+    // Guardar nodo si es nuestro y tiene id
+    if (isOwn && messageId) {
+        sentMessages.set(messageId, bubble);
+        console.log('💾 Guardado mensaje en sentMessages:', messageId);
+
+        // SI ya había una confirmación pendiente, se actualiza
+        if (pendingConfirmations.has(messageId)) {
+            const statusEl = bubble.querySelector(`[data-mid="${messageId}"]`);
+            if (statusEl) statusEl.textContent = '✓✓';
+            console.log('🔄 Confirmación pendiente aplicada:', messageId);
+            pendingConfirmations.delete(messageId);
+        }
+    }
 
     // Auto-scroll
     if (isOwn || isNearBottom(messageContainer)) {
@@ -446,4 +496,24 @@ socket.on('user-typing', ({ fromUserId, fromUsername }) => {
 
 socket.on('user-stop-typing', ({ fromUserId }) => {
     if (selectedUserId === fromUserId) typingIndicator.textContent = '';
+});
+
+socket.on('message-received', ({ messageId }) => {
+    console.log('✅ Confirmación recibida para:', messageId);
+
+    const bubble = sentMessages.get(messageId);
+
+    if (!bubble) {
+        console.warn('❗ No se encontró burbuja para:', messageId);
+        pendingConfirmations.set(messageId, true); // Se guarda la confirmación pendiente
+        return;
+    }
+
+    const statusEl = bubble.querySelector(`[data-mid="${messageId}"]`);
+    if (!statusEl) {
+        console.warn('❗ No se encontró el span con data-mid para:', messageId);
+        return;
+    }
+
+    statusEl.textContent = '✓✓';
 });

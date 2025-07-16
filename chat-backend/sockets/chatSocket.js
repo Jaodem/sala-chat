@@ -54,6 +54,22 @@ module.exports = async (socket, io) => {
         }
     });
 
+    // Confirmación de recepción de mensaje
+    socket.on('message-received', ({ messageId, toUserId }) => {
+        // El toUserId es el emisor
+        const sender = connectedUsers.get(toUserId);
+        if (sender) {
+            io.to(sender.socketId).emit('message-received', {
+                messageId,
+                fromUserId: userId // De quien confirma haberlo recibido
+            });
+            console.log('📤 Confirmación enviada a emisor:', {
+                toSocket: sender.socketId,
+                messageId
+            });
+        }
+    });
+
     // Manejar desconexión
     socket.on('disconnect', () => {
         connectedUsers.delete(userId);
@@ -93,20 +109,23 @@ async function sendPrivateMessage(data, { socket, io, userId, username }) {
         const saved = await Message.create(payload);
         console.log(`✉️ ${username} -> ${toUsername}: ${message}`);
 
+        // Agregar messageId al payload
+        const messageData = {
+            ...payload,
+            messageId: saved._id.toString(),
+            createdAt: saved.createdAt
+        };
+
+        console.log('📨 Enviando mensaje con ID:', messageData.messageId);
+
         // Enviar al destinatario si está conectado
         const recipient = connectedUsers.get(toUserId);
         if (recipient) {
-            io.to(recipient.socketId).emit('private-message', {
-                ...payload,
-                createdAt: saved.createdAt
-            });
+            io.to(recipient.socketId).emit('private-message', messageData);
         }
 
         // Enviar también al emisor
-        socket.emit('private-message', {
-            ...payload,
-            createdAt: saved.createdAt
-        });
+        socket.emit('private-message', messageData);
     } catch (error) {
         console.error('❌ Error al guardar mensaje:', error.message);
     }
