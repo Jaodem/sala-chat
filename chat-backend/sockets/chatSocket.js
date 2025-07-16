@@ -29,8 +29,29 @@ module.exports = async (socket, io) => {
 
     // Manejar recepción de mensajes privados
     socket.on('send-message', async (data) => {
-        console.log('🟡  LLEGÓ del cliente →', data);   //  👈 añade esto
+        console.log('🟡  LLEGÓ del cliente →', data);
         await sendPrivateMessage(data, { socket, io, userId, username });
+    });
+
+    // User está escribiendo
+    socket.on('typing', ({ toUserId }) => {
+        const recipient = connectedUsers.get(toUserId);
+        if (recipient) {
+            io.to(recipient.socketId).emit('user-typing', {
+                fromUserId: userId,
+                fromUsername: username
+            });
+        }
+    });
+
+    // User deja de escribir
+    socket.on('stop-typing', ({ toUserId }) => {
+        const recipient = connectedUsers.get(toUserId);
+        if (recipient) {
+            io.to(recipient.socketId).emit('user-stop-typing', {
+                fromUserId: userId
+            });
+        }
     });
 
     // Manejar desconexión

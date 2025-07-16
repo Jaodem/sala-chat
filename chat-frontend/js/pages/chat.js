@@ -410,3 +410,40 @@ scrollBtn.addEventListener('click', () => {
     });
     hideScrollBtn(0); // Se lo oculta inmediatamente
 });
+
+let typingTimeout;
+messageInput.addEventListener('input', () => {
+    if (!selectedUser) return;
+
+    socket.emit('typing', {
+        toUserId: selectedUser.userId,
+        fromUserId: currentUserId,
+        fromUsername: users.find(u => u.userId === currentUserId)?.username
+    });
+
+    // Prevenir spam de eventos
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        socket.emit('stop-typing', {
+            toUserId: selectedUser.userId
+        });
+    }, 2000);
+});
+
+const typingIndicator = document.getElementById('typingIndicator');
+
+socket.on('user-typing', ({ fromUserId, fromUsername }) => {
+    // Solo si es el chat activo
+    if (selectedUserId !== fromUserId) return;
+
+    typingIndicator.textContent = `${fromUsername} está escribiendo...`;
+
+    clearTimeout(typingIndicator.timeout);
+    typingIndicator.timeout = setTimeout(() => {
+        typingIndicator.textContent = '';
+    }, 3000);
+});
+
+socket.on('user-stop-typing', ({ fromUserId }) => {
+    if (selectedUserId === fromUserId) typingIndicator.textContent = '';
+});
