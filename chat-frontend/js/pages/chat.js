@@ -32,6 +32,9 @@ const pendingConfirmations = new Map(); // messageId => true
 const emojiToggle = document.getElementById('emojiToggle');
 const emojiPicker = document.getElementById('emojiPicker');
 
+// Sonido para notificaciones
+const notificationSound = document.getElementById('notificationSound');
+
 // Set con usuarios que tienen mensajes pendientes
 const unread = new Set();
 
@@ -313,6 +316,15 @@ socket.on('private-message', (payload) => {
 
         // Se guarda también si es de uno, aunque no este visible
         if (isOwn) appendMessageBubble(payload.message, payload.createdAt, true, payload.messageId);
+    }
+
+    if (!isOwn) {
+        try {
+            notificationSound.currentTime = 0; // Se reinicia si ya estaba sonando
+            notificationSound.play();
+        } catch (error) {
+            console.warn("No se pudo reproducir el sonido:", error);
+        }
     }
 
     if (!isOwn && isForCurrentConversation) {
