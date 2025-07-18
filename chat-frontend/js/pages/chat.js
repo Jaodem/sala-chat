@@ -318,7 +318,7 @@ socket.on('private-message', (payload) => {
         if (isOwn) appendMessageBubble(payload.message, payload.createdAt, true, payload.messageId);
     }
 
-    if (!isOwn) {
+    if (!isOwn && !isForCurrentConversation) {
         try {
             notificationSound.currentTime = 0; // Se reinicia si ya estaba sonando
             notificationSound.play();
