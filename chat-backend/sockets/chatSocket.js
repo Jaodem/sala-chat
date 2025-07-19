@@ -70,6 +70,17 @@ module.exports = async (socket, io) => {
         }
     });
 
+    // Manejar zumbido
+    socket.on('send-zumbido', ({ toUserId }) => {
+        const recipient = connectedUsers.get(toUserId);
+        if (recipient) {
+            io.to(recipient.socketId).emit('receive-zumbido', {
+                fromUserId: userId,
+                fromUsername: username
+            });
+        }
+    });
+
     // Manejar desconexión
     socket.on('disconnect', () => {
         connectedUsers.delete(userId);

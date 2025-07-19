@@ -34,6 +34,10 @@ const emojiPicker = document.getElementById('emojiPicker');
 
 // Sonido para notificaciones
 const notificationSound = document.getElementById('notificationSound');
+const zumbidoSound = document.getElementById('zumbidoSound');
+
+// Para los zumbidos
+const zumbidoBtn = document.getElementById('zumbidoBtn');
 
 // Set con usuarios que tienen mensajes pendientes
 const unread = new Set();
@@ -164,14 +168,14 @@ async function loadChatMessages(userId) {
 
         message.forEach(msg => {
             const isOwn = msg.userId === currentUserId;
-
             const msgDate = new Date(msg.createdAt).toDateString();
+
             if (msgDate !== lastDate) {
                 appendDateSeparator(formatDateSeparator(msg.createdAt));
                 lastDate = msgDate;
             }
 
-            const bubble = appendMessageBubble(msg.message, msg.createdAt, isOwn, msg._id);
+            appendMessageBubble(msg.message, msg.createdAt, isOwn, msg._id);
 
             // Se emite confirmación de lectura si el mensaje es ajeno
             if (!isOwn) {
@@ -182,6 +186,15 @@ async function loadChatMessages(userId) {
                 console.log('📤 Confirmación emitida por historial:', msg._id);
             }
         });
+
+        // Mostrar zumbidos pendientes si los hay
+        if (pendingConfirmations.has(userId)) {
+            const pendingZumbidos = pendingConfirmations.get(userId);
+            pendingZumbidos.forEach(z => {
+                if (z.type === 'zumbido') appendZumbidoMessage(`─────⚡ ${z.username} te envió un zumbido ⚡─────`);
+            });
+            pendingConfirmations.delete(userId);
+        }
 
         requestAnimationFrame(() => {
             messageContainer.scrollTop = messageContainer.scrollHeight;
@@ -467,6 +480,15 @@ function hideScrollBtn(delay = 350) {
     delay);
 }
 
+// Función para mostrar el mensaje de zumbido en el chat
+function appendZumbidoMessage(text) {
+    const separator = document.createElement('div');
+    separator.className = 'text-xs text-yellow-600 text-center my-4 select-none font-semibold';
+    separator.textContent = text;
+    messageContainer.appendChild(separator);
+    scrollToBotom();
+}
+
 messageContainer.addEventListener('scroll', () => {    
     if (isNearBottom(messageContainer)) {
         scrollBtn.classList.add('hidden'); // si llega abajo, ocultamos el botón
@@ -537,6 +559,61 @@ socket.on('message-received', ({ messageId }) => {
     statusEl.textContent = '✓✓';
 });
 
+// Recibir zumbido
+socket.on('receive-zumbido', ({ fromUserId, fromUsername }) => {
+    // Mostrar en la barra de estado
+    showStatusMessage(`${fromUsername} te envió un zumbido`, 'zumbido');
+
+    // Hacer temblar el chat
+    const chatSection = document.querySelector('section.flex-1');
+    chatSection.animate(
+        [
+            { transform: 'translateX(0)' },
+            { transform: 'translateX(-5px)' },
+            { transform: 'translateX(5px)' },
+            { transform: 'translateX(-5px)' },
+            { transform: 'translateX(0)' }
+        ], {
+            duration: 500,
+            easing: 'ease-in-out'
+        }
+    );
+
+    // Sonido
+    try {
+        zumbidoSound.currentTime = 0;
+        zumbidoSound.play();
+    } catch (error) {
+        console.warn('No se pudo reproducir sonido de zumbido:', error);
+    }
+
+    // Guardar el zumbido como último mensaje
+    lastMessagesByUser.set(fromUserId, {
+        text: `${fromUsername} te envió un zumbido`,
+        createdAt: new Date().toISOString()
+    });
+
+    // Si no esta en el chat del emisor, marcar notificación
+    if (fromUserId === selectedUserId) {
+        // Si esta en la ventana del emisor, mostrar mensaje en la ventana de chat
+        appendZumbidoMessage(`─────⚡ ${fromUsername} te envió un zumbido ⚡─────`);
+    } else {
+        // Se guarda el zumbido pendiente como si fuera un mensaje normal
+        if (!pendingConfirmations.has(fromUserId)) pendingConfirmations.set(fromUserId, []);
+
+        pendingConfirmations.get(fromUserId).push({
+            type: 'zumbido',
+            username: fromUsername,
+            createdAt: new Date().toISOString()
+        })
+
+        // Si se esta en otro chat, se marca como no leído
+        markUserAsUnread(fromUserId);
+    }
+
+    renderUserList();
+});
+
 // Alternar visibilidad del selector de emojis
 emojiToggle.addEventListener('click', () => {
     emojiPicker.classList.toggle('hidden');
@@ -560,4 +637,16 @@ document.addEventListener('click', event => {
     const isClickOnToggle = emojiToggle.contains(event.target);
 
     if (!isClickInsidePicker && !isClickOnToggle) emojiPicker.classList.add('hidden');
+});
+
+// Para enviar el zumbido
+zumbidoBtn.addEventListener('click', () => {
+    if (!selectedUser) return;
+
+    socket.emit('send-zumbido', {
+        toUserId: selectedUser.userId
+    });
+
+    // Mostrar en el chat emisor
+    appendZumbidoMessage(`─────⚡ Le enviaste un zumbido a ${selectedUser.username} ⚡─────`);
 });
