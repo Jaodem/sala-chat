@@ -1,5 +1,6 @@
 import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
+import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn } from "../components/chat/messageUI.js";
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();
@@ -41,6 +42,9 @@ const zumbidoBtn = document.getElementById('zumbidoBtn');
 
 // Set con usuarios que tienen mensajes pendientes
 const unread = new Set();
+
+// Inicializar messageUI
+initMessageUI(messageContainer, scrollBtn, sentMessages, pendingConfirmations);
 
 // Estados de conexión
 function showStatusMessage(text, type = 'info') {
@@ -351,142 +355,13 @@ socket.on('private-message', (payload) => {
     renderUserList(); // Para resfrescar texto
 });
 
-// Pintar burbujas
-function appendMessageBubble(text, isoDate, isOwn, messageId = null) {
-    // Burbuja
-    const bubble = document.createElement('div');
-    bubble.classList.add(
-        'max-w-[70%]', 'px-4', 'py-2', 'rounded-xl', 'shadow',
-        'text-sm', 'break-words',
-        ...(isOwn
-            ? ['bg-blue-600', 'text-white', 'self-end']
-            : ['bg-gray-200', 'text-gray-800', 'self-start'])
-    );
-
-    // Ícono de estado de tilde y dobe tilde
-    const status = isOwn && messageId
-        ? `<span class="ml-1 text-xs align-bottom opacity-70" data-mid="${messageId}">✓</span>`
-        : '';
-
-    bubble.innerHTML = `
-        <p>${text}</p>
-        <span class="block text-[10px] mt-1 opacity-70 ${isOwn ? 'text-right' : ''}">
-            ${formatTime(isoDate)} ${status}
-        </span>
-    `;
-
-    messageContainer.appendChild(bubble);
-
-    // Guardar nodo si es nuestro y tiene id
-    if (isOwn && messageId) {
-        sentMessages.set(messageId, bubble);
-        console.log('💾 Guardado mensaje en sentMessages:', messageId);
-
-        // SI ya había una confirmación pendiente, se actualiza
-        if (pendingConfirmations.has(messageId)) {
-            const statusEl = bubble.querySelector(`[data-mid="${messageId}"]`);
-            if (statusEl) statusEl.textContent = '✓✓';
-            console.log('🔄 Confirmación pendiente aplicada:', messageId);
-            pendingConfirmations.delete(messageId);
-        }
-    }
-
-    // Auto-scroll
-    if (isOwn || isNearBottom(messageContainer)) {
-        scrollToBotom({
-            smooth: true
-        });
-        hideScrollBtn(); // Se oculta cuando termina
-    } else {
-        scrollBtn.classList.remove('hidden');
-    }
-
-    return bubble; 
-}
-
-// Helper, devuelve hh:mm si es hoy, de lo contrario
-function formatTime(dateString) {
-    const d = new Date(dateString);
-
-    // Verificar si el mensaje es de hoy
-    const today = new Date();
-    const isToday =
-        d.getDate() === today.getDate() &&
-        d.getMonth() === today.getMonth() &&
-        d.getFullYear() === today.getFullYear();
-
-    // Para aplicar el formato 24 h con 2 dígitos
-    const time = d.toLocaleTimeString('es-AR', {
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-
-    if (isToday) return time;
-
-    // Fecha + hora para días anteriores
-    const date = d.toLocaleDateString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    });
-
-    return `${time} ${date}`;
-}
-
-// Se formatea las fechas como separador en el chat
-function formatDateSeparator(dateString) {
-    const today = new Date();
-    const msgDate = new Date(dateString);
-
-    const isToday = msgDate.toDateString() === today.toDateString();
-
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    const isYesterday = msgDate.toDateString() === yesterday.toDateString();
-
-    if (isToday) return 'Hoy';
-    if (isYesterday) return 'Ayer';
-
-    return msgDate.toLocaleDateString('es-AR', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
-}
-
-function appendDateSeparator(text) {
-    const separator = document.createElement('div');
-    separator.className = 'text-xs text-gray-500 text-center my-4 select-none';
-    separator.textContent = `───── ${text} ─────`;
-    messageContainer.appendChild(separator);
-}
-
-function isNearBottom(elem, offset = 80) {
-    return elem.scrollTop + elem.clientHeight >= elem.scrollHeight - offset;
-}
-
-function scrollToBotom({ smooth = true } = {}) {
-    // Forzar re-flow para tener el scrollHeight definitivo
-    void messageContainer.offsetHeight; // Trigger reflow
-    messageContainer.scrollTo({
-        top: messageContainer.scrollHeight,
-        behavior: smooth ? 'smooth' : 'auto'
-    });
-}
-
-function hideScrollBtn(delay = 350) {
-    setTimeout(() =>
-        scrollBtn.classList.add('hidden'),
-    delay);
-}
-
 // Función para mostrar el mensaje de zumbido en el chat
 function appendZumbidoMessage(text) {
     const separator = document.createElement('div');
     separator.className = 'text-xs text-yellow-600 text-center my-4 select-none font-semibold';
     separator.textContent = text;
     messageContainer.appendChild(separator);
-    scrollToBotom();
+    scrollToBottom();
 }
 
 messageContainer.addEventListener('scroll', () => {    
@@ -496,7 +371,7 @@ messageContainer.addEventListener('scroll', () => {
 });
 
 scrollBtn.addEventListener('click', () => {
-    scrollToBotom({
+    scrollToBottom({
         smooth: true
     });
     hideScrollBtn(0); // Se lo oculta inmediatamente
