@@ -1,6 +1,7 @@
 import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
 import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn } from "../components/chat/messageUI.js";
+import { createElement } from "../utils/domUtils.js";
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();
@@ -76,35 +77,31 @@ function renderUserList() {
     const filtered = sortAndFilter(users);
 
     if (filtered.length === 0) {
-        const li = document.createElement('li');
-        li.textContent = 'No hay otros usuarios conectados';
-        li.className = 'p-3 text-sm text-gray-500 italic';
+        const li = createElement('li', 'p-3 text-sm text-gray-500 italic', 'No hay otros usuarios conectados');
         userList.appendChild(li);
         return;
     }
 
     filtered.forEach(user => {
-        const li = document.createElement('li');
+        const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
         li.dataset.uid = user.userId;
-        li.className = 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200';
 
         // Contenedor horizontal con nombre y puntito
-        const topRow = document.createElement('div');
-        topRow.className = 'flex items-center justify-between';
+        const topRow = createElement('div', 'flex items-center justify-between');
 
         // Nombre de usuario
-        const usernameSpan = document.createElement('span');
-        usernameSpan.textContent = user.username;
+        const usernameSpan = createElement('span', '', user.username);
+
         if (user.userId === selectedUserId) {
             usernameSpan.classList.add('font-semibold', 'text-blue-800');
             li.classList.add('bg-blue-100');
         }
+
         topRow.appendChild(usernameSpan);
 
         // Puntito rojo si esta en unread
         if (unread.has(user.userId)) {
-            const dot = document.createElement('span');
-            dot.className = 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2';
+            const dot = createElement('span', 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2');
             li.appendChild(dot);
             li.classList.add('bg-yellow-200');
         }
@@ -114,10 +111,8 @@ function renderUserList() {
         // Último mensaje si es que hay
         const lastMsg = lastMessagesByUser.get(user.userId);
         if (lastMsg) {
-            const preview = document.createElement('span');
-            preview.className = 'text-sm text-gray-600 truncate';
             const time = formatTime(lastMsg.createdAt);
-            preview.textContent = `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`;
+            const preview = createElement('span', 'text-sm text-gray-600 truncate', `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`);
             li.appendChild(preview);
         }
 
@@ -357,9 +352,7 @@ socket.on('private-message', (payload) => {
 
 // Función para mostrar el mensaje de zumbido en el chat
 function appendZumbidoMessage(text) {
-    const separator = document.createElement('div');
-    separator.className = 'text-xs text-yellow-600 text-center my-4 select-none font-semibold';
-    separator.textContent = text;
+    const separator = createElement('div', 'text-xs text-yellow-600 text-center my-4 select-none font-semibold', text);
     messageContainer.appendChild(separator);
     scrollToBottom();
 }
