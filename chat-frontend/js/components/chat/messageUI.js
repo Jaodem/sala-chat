@@ -1,15 +1,19 @@
+import { createElement } from "../../utils/domUtils.js";
+
 // Contenedor de mensajes
 let messageContainer;
 let scrollBtn;
 let sentMessages;
 let pendingConfirmations;
+let statusMessageEl;
 
 // Inicialización: se recibe referencias para trabajar con el DOM y variables compartidas
-export function initMessageUI(container, scrollButton, sentMap, pendingMap) {
+export function initMessageUI(container, scrollButton, sentMap, pendingMap, statusEl) {
     messageContainer = container;
     scrollBtn = scrollButton;
     sentMessages = sentMap;
     pendingConfirmations = pendingMap;
+    statusMessageEl = statusEl;
 }
 
 // Pintar burbujas
@@ -126,4 +130,26 @@ export function scrollToBottom({ smooth = true } = {}) {
 
 export function hideScrollBtn(delay = 350) {
     setTimeout(() => scrollBtn.classList.add('hidden'), delay);
+}
+
+export function appendZumbidoMessage(text) {
+    const separator = createElement('div', 'text-xs text-yellow-600 text-center my-4 select-none font-semibold', text);
+    messageContainer.appendChild(separator);
+    scrollToBottom();
+}
+
+export function showStatusMessage(text, type = 'info') {
+    if (!statusMessageEl) return;
+
+    statusMessageEl.textContent = text;
+    statusMessageEl.className = 'text-sm font-medium px-4 py-2 rounded-xl shadow transition';
+
+    if (type === 'connect') statusMessageEl.classList.add('bg-green-100', 'text-green-700');
+    else if (type === 'disconnect') statusMessageEl.classList.add('bg-red-100', 'text-red-700');
+    else statusMessageEl.classList.add('bg-gray-100', 'text-gray-700');
+
+    setTimeout(() => {
+        statusMessageEl.textContent = '';
+        statusMessageEl.className = '';
+    }, 5000);
 }

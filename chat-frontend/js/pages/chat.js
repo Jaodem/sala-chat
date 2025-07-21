@@ -1,6 +1,6 @@
 import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
-import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn } from "../components/chat/messageUI.js";
+import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
 import { createElement } from "../utils/domUtils.js";
 
 // Validar sesión, si no está logueado redirige a login
@@ -49,22 +49,7 @@ const zumbidoBtn = document.getElementById('zumbidoBtn');
 const unread = new Set();
 
 // Inicializar messageUI
-initMessageUI(messageContainer, scrollBtn, sentMessages, pendingConfirmations);
-
-// Estados de conexión
-function showStatusMessage(text, type = 'info') {
-    statusMessage.textContent = text;
-    statusMessage.className = 'text-sm font-medium px-4 py-2 rounded-xl shadow transition';
-
-    if (type === 'connect') statusMessage.classList.add('bg-green-100', 'text-green-700');
-    else if (type === 'disconnect') statusMessage.classList.add('bg-red-100', 'text-red-700');
-    else statusMessage.classList.add('bg-gray-100', 'text-gray-700');
-
-    setTimeout(() => {
-        statusMessage.textContent = '';
-        statusMessage.className = '';
-    }, 5000);
-}
+initMessageUI(messageContainer, scrollBtn, sentMessages, pendingConfirmations, statusMessage);
 
 function sortAndFilter(list) {
     return list
@@ -363,13 +348,6 @@ socket.on('private-message', (payload) => {
 
     renderUserList(); // Para resfrescar texto
 });
-
-// Función para mostrar el mensaje de zumbido en el chat
-function appendZumbidoMessage(text) {
-    const separator = createElement('div', 'text-xs text-yellow-600 text-center my-4 select-none font-semibold', text);
-    messageContainer.appendChild(separator);
-    scrollToBottom();
-}
 
 messageContainer.addEventListener('scroll', () => {    
     if (isNearBottom(messageContainer)) {
