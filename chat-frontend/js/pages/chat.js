@@ -71,7 +71,7 @@ function sortAndFilter(list) {
 }
 
 function createUserListItem(user) {
-    const li =createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
+    const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
     li.dataset.uid = user.userId;
 
     const topRow = createElement('div', 'flex items-center justify-between');
@@ -101,17 +101,17 @@ function createUserListItem(user) {
         li.appendChild(preview);
     }
 
-    li.addEventListener('click', () => {
-        selectedUser = user;
-        selectedUserId = user.userId;
-        chatWith.textContent = `Chat con ${user.username}`;
+    // li.addEventListener('click', () => {
+    //     selectedUser = user;
+    //     selectedUserId = user.userId;
+    //     chatWith.textContent = `Chat con ${user.username}`;
 
-        unread.delete(user.userId);
+    //     unread.delete(user.userId);
 
-        renderUserList();
+    //     renderUserList();
 
-        loadChatMessages(user.userId);
-    });
+    //     loadChatMessages(user.userId);
+    // });
 
     return li;
 }
@@ -133,6 +133,30 @@ function renderUserList() {
         userList.appendChild(li);
     });
 }
+
+// Listener del contenedor
+userList.addEventListener('click', event => {
+    // Se busca el li más cercano al target del click
+    const li = event.target.closest('li');
+    if (!li || !userList.contains(li)) return;
+
+    const uid = li.dataset.uid;
+    if (!uid) return;
+
+    // Se busca el usuario en la lista
+    const user = users.find(u => u.userId === uid);
+    if (!user) return;
+
+    selectedUser = user;
+    selectedUserId = user.userId;
+    chatWith.textContent = `Chat con ${user.username}`;
+
+    unread.delete(user.userId);
+
+    renderUserList();
+
+    loadChatMessages(user.userId);
+});
 
 // Marcar usuario con mensaje no leído
 function markUserAsUnread(userId) {
