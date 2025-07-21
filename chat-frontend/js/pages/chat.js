@@ -28,7 +28,10 @@ let users = []; // Lista de usuarios conectados
 let lastMessagesByUser = new Map(); // userId => { text, createdAt }
 
 const sentMessages = new Map(); // messageId => DOMNode
-const pendingConfirmations = new Map(); // messageId => true
+const pendingConfirmations = {
+    messages: new Map(), // messageId => true
+    zumbidos: new Map() // userId => [ { type, username, createdAt }, ... ]
+}
 
 // Para el uso de emoji
 const emojiToggle = document.getElementById('emojiToggle');
@@ -101,18 +104,6 @@ function createUserListItem(user) {
         li.appendChild(preview);
     }
 
-    // li.addEventListener('click', () => {
-    //     selectedUser = user;
-    //     selectedUserId = user.userId;
-    //     chatWith.textContent = `Chat con ${user.username}`;
-
-    //     unread.delete(user.userId);
-
-    //     renderUserList();
-
-    //     loadChatMessages(user.userId);
-    // });
-
     return li;
 }
 
@@ -134,6 +125,18 @@ function renderUserList() {
     });
 }
 
+function selectUser(user) {
+    selectedUser = user;
+    selectedUserId = user.userId;
+    chatWith.textContent = `Chat con ${user.username}`;
+
+    unread.delete(user.userId);
+
+    renderUserList();
+
+    loadChatMessages(user.userId);
+}
+
 // Listener del contenedor
 userList.addEventListener('click', event => {
     // Se busca el li más cercano al target del click
@@ -146,16 +149,7 @@ userList.addEventListener('click', event => {
     // Se busca el usuario en la lista
     const user = users.find(u => u.userId === uid);
     if (!user) return;
-
-    selectedUser = user;
-    selectedUserId = user.userId;
-    chatWith.textContent = `Chat con ${user.username}`;
-
-    unread.delete(user.userId);
-
-    renderUserList();
-
-    loadChatMessages(user.userId);
+    selectUser(user);
 });
 
 // Marcar usuario con mensaje no leído
@@ -209,12 +203,12 @@ async function loadChatMessages(userId) {
         });
 
         // Mostrar zumbidos pendientes si los hay
-        if (pendingConfirmations.has(userId)) {
-            const pendingZumbidos = pendingConfirmations.get(userId);
+        if (pendingConfirmations.zumbidos.has(userId)) {
+            const pendingZumbidos = pendingConfirmations.zumbidos.get(userId);
             pendingZumbidos.forEach(z => {
                 if (z.type === 'zumbido') appendZumbidoMessage(`─────⚡ ${z.username} te envió un zumbido ⚡─────`);
             });
-            pendingConfirmations.delete(userId);
+            pendingConfirmations.zumbidos.delete(userId);
         }
 
         requestAnimationFrame(() => {
@@ -436,7 +430,7 @@ socket.on('message-received', ({ messageId }) => {
 
     if (!bubble) {
         console.warn('❗ No se encontró burbuja para:', messageId);
-        pendingConfirmations.set(messageId, true); // Se guarda la confirmación pendiente
+        pendingConfirmations.messages.set(messageId, true); // Se guarda la confirmación pendiente
         return;
     }
 
@@ -489,9 +483,9 @@ socket.on('receive-zumbido', ({ fromUserId, fromUsername }) => {
         appendZumbidoMessage(`─────⚡ ${fromUsername} te envió un zumbido ⚡─────`);
     } else {
         // Se guarda el zumbido pendiente como si fuera un mensaje normal
-        if (!pendingConfirmations.has(fromUserId)) pendingConfirmations.set(fromUserId, []);
+        if (!pendingConfirmations.zumbidos.has(fromUserId)) pendingConfirmations.zumbidos.set(fromUserId, []);
 
-        pendingConfirmations.get(fromUserId).push({
+        pendingConfirmations.zumbidos.get(fromUserId).push({
             type: 'zumbido',
             username: fromUsername,
             createdAt: new Date().toISOString()

@@ -38,10 +38,10 @@ export function appendMessageBubble(text, isoDate, isOwn, messageId = null){
 
     if (isOwn && messageId) {
         sentMessages.set(messageId, bubble);
-        if (pendingConfirmations.has(messageId)) {
+        if (pendingConfirmations.messages.has(messageId)) {
             const statusEl = bubble.querySelector(`[data-mid="${messageId}"]`);
             if (statusEl) statusEl.textContent = '✓✓';
-            pendingConfirmations.delete(messageId);
+            pendingConfirmations.messages.delete(messageId);
         }
     }
 
