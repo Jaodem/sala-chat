@@ -70,6 +70,52 @@ function sortAndFilter(list) {
         );
 }
 
+function createUserListItem(user) {
+    const li =createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
+    li.dataset.uid = user.userId;
+
+    const topRow = createElement('div', 'flex items-center justify-between');
+
+    const usernameSpan = createElement('span', '', user.username);
+
+    if (user.userId === selectedUserId) {
+        usernameSpan.classList.add('font-semibold', 'text-blue-800');
+        li.classList.add('bg-blue-100');
+    }
+
+    topRow.appendChild(usernameSpan);
+
+    if (unread.has(user.userId)) {
+        const dot = createElement('span', 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2');
+        li.appendChild(dot);
+        li.classList.add('bg-yellow-200');
+    }
+
+    li.appendChild(topRow);
+
+    const lastMsg = lastMessagesByUser.get(user.userId);
+    if (lastMsg) {
+        const time = formatTime(lastMsg.createdAt);
+        const previewText = `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`;
+        const preview = createElement('span', 'text-sm text-gray-600 truncate', previewText);
+        li.appendChild(preview);
+    }
+
+    li.addEventListener('click', () => {
+        selectedUser = user;
+        selectedUserId = user.userId;
+        chatWith.textContent = `Chat con ${user.username}`;
+
+        unread.delete(user.userId);
+
+        renderUserList();
+
+        loadChatMessages(user.userId);
+    });
+
+    return li;
+}
+
 // Renderizar lista de usuarios
 function renderUserList() {
     userList.innerHTML = '';
@@ -83,55 +129,7 @@ function renderUserList() {
     }
 
     filtered.forEach(user => {
-        const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
-        li.dataset.uid = user.userId;
-
-        // Contenedor horizontal con nombre y puntito
-        const topRow = createElement('div', 'flex items-center justify-between');
-
-        // Nombre de usuario
-        const usernameSpan = createElement('span', '', user.username);
-
-        if (user.userId === selectedUserId) {
-            usernameSpan.classList.add('font-semibold', 'text-blue-800');
-            li.classList.add('bg-blue-100');
-        }
-
-        topRow.appendChild(usernameSpan);
-
-        // Puntito rojo si esta en unread
-        if (unread.has(user.userId)) {
-            const dot = createElement('span', 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2');
-            li.appendChild(dot);
-            li.classList.add('bg-yellow-200');
-        }
-
-        li.appendChild(topRow);
-
-        // Último mensaje si es que hay
-        const lastMsg = lastMessagesByUser.get(user.userId);
-        if (lastMsg) {
-            const time = formatTime(lastMsg.createdAt);
-            const preview = createElement('span', 'text-sm text-gray-600 truncate', `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`);
-            li.appendChild(preview);
-        }
-
-        li.addEventListener('click', () => {
-            // Actualizar el chat seleccionado
-            selectedUser = user;
-            selectedUserId = user.userId;
-            chatWith.textContent = `Chat con ${user.username}`;
-
-            // Al abrir el chat se quita la notificación
-            unread.delete(user.userId);
-
-            // Refrescar la lista
-            renderUserList();
-
-            // Se trae el historial con ese chat
-            loadChatMessages(user.userId);
-        });
-
+        const li = createUserListItem(user);
         userList.appendChild(li);
     });
 }
