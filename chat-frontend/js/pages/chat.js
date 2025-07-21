@@ -32,6 +32,7 @@ const pendingConfirmations = {
     messages: new Map(), // messageId => true
     zumbidos: new Map() // userId => [ { type, username, createdAt }, ... ]
 }
+const confirmedMessages = new Set(); // messageId ya confirmados
 
 // Para el uso de emoji
 const emojiToggle = document.getElementById('emojiToggle');
@@ -160,6 +161,15 @@ function markUserAsUnread(userId) {
     }
 }
 
+// Función para comfirmar
+function confirmIfNeeded(messageId, toUserId) {
+    if (!confirmedMessages.has(messageId)) {
+        socket.emit('message-received', { messageId, toUserId });
+        confirmedMessages.add(messageId);
+        console.log('📤 Confirmación emitida:', messageId);
+    }
+}
+
 // Cargar mensajes desde el backend
 async function loadChatMessages(userId) {
     messageContainer.innerHTML = '';
@@ -193,13 +203,7 @@ async function loadChatMessages(userId) {
             appendMessageBubble(msg.message, msg.createdAt, isOwn, msg._id);
 
             // Se emite confirmación de lectura si el mensaje es ajeno
-            if (!isOwn) {
-                socket.emit('message-received', {
-                    messageId: msg._id,
-                    toUserId: msg.userId
-                });
-                console.log('📤 Confirmación emitida por historial:', msg._id);
-            }
+            if (!isOwn) confirmIfNeeded(msg._id, msg.userId);
         });
 
         // Mostrar zumbidos pendientes si los hay
@@ -311,7 +315,7 @@ messageForm.addEventListener('submit', (e) => {
 
 // Recibir mensaje
 socket.on('private-message', (payload) => {
-    /*
+    /*initMessageUI
         payload = {
             userId,          // emisor
             username,
@@ -355,13 +359,7 @@ socket.on('private-message', (payload) => {
         }
     }
 
-    if (!isOwn && isForCurrentConversation) {
-        console.log('📤 Emitiendo confirmación de recepción:', payload.messageId);
-        socket.emit('message-received', {
-            messageId: payload.messageId,
-            toUserId: payload.userId
-        });
-    }
+    if (!isOwn && isForCurrentConversation) confirmIfNeeded(payload.messageId, payload.userId);
 
     renderUserList(); // Para resfrescar texto
 });
