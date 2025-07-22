@@ -52,4 +52,83 @@ export function registerSocketHandlers(socket, {
         console.log('🔌 Socket desconectado');
         showStatusMessage('Desconectado del servidor', 'disconnect');
     });
+
+    // Manejo de mensajes privados
+    handlePrivateMessage(socket, {
+        getCurrentUserId, // 👈 Pasamos función
+        getSelectedUserId,
+        getSelectedUser,
+        users: getUsers(),
+        messageContainer,
+        sentMessages,
+        confirmedMessages,
+        pendingConfirmations,
+        lastMessagesByUser,
+        appendMessageBubble,
+        markUserAsUnread: (userId) => setUnread(userId, true),
+        notificationSound,
+        renderUserList,
+        confirmIfNeeded: (messageId, senderId) => {
+            socket.emit('confirm-message', { messageId, senderId });
+            confirmedMessages.add(messageId);
+            const bubble = sentMessages.get(messageId);
+            const statusEl = bubble?.querySelector(`[data-mid="${messageId}"]`);
+            if (statusEl) statusEl.textContent = '✓✓';
+        }
+    })
+}
+
+export function handlePrivateMessage(socket, {
+    getCurrentUserId,
+    getSelectedUserId,
+    getSelectedUser,
+    users,
+    messageContainer,
+    sentMessages,
+    confirmedMessages,
+    pendingConfirmations,
+    lastMessagesByUser,
+    appendMessageBubble,
+    markUserAsUnread,
+    notificationSound,
+    renderUserList,
+    confirmIfNeeded
+}) {
+    socket.on('private-message', payload => {
+        console.log('📩 Recibido mensaje con ID:', payload.messageId);
+        const currentUserId = getCurrentUserId();
+        const selectedUserId = getSelectedUserId();
+
+        const isOwn = payload.userId === currentUserId;
+        const talkingWith = isOwn ? payload.toUserId : payload.userId;
+        const isForCurrentConversation = selectedUserId && talkingWith === selectedUserId;
+
+        // Guardar el último mensaje
+        lastMessagesByUser.set(talkingWith, {
+            text: payload.message,
+            createdAt: payload.createdAt
+        });
+
+        if (isForCurrentConversation) {
+            appendMessageBubble(payload.message, payload.createdAt, isOwn, payload.messageId);
+        } else {
+            markUserAsUnread(talkingWith);
+
+            if (isOwn) appendMessageBubble(payload.message, payload.createdAt, true, payload.messageId);
+        }
+
+        // Sonido de notificatión solo si no está en el chat actual
+        if (!isOwn && !isForCurrentConversation) {
+            try {
+                notificationSound.currentTime = 0;
+                notificationSound.play();
+            } catch (error) {
+                console.warn("No se pudo reproducir el sonido:", error);
+            }
+        }
+
+        if (!isOwn && isForCurrentConversation) confirmIfNeeded(payload.messageId, payload.userId);
+
+        renderUserList();
+    });
 }

@@ -60,7 +60,7 @@ registerSocketHandlers(socket, {
     getSelectedUser,
     getUsers,
     setUsers,
-    setUnread,
+    setUnread: markUserAsUnread, // 👈 usamos tu función ya definida
     renderUserList,
     sentMessages,
     pendingConfirmations,
@@ -307,57 +307,6 @@ messageForm.addEventListener('submit', (e) => {
         });
         scrollBtn.classList.add('hidden');
     });
-});
-
-// Recibir mensaje
-socket.on('private-message', (payload) => {
-    /*initMessageUI
-        payload = {
-            userId,          // emisor
-            username,
-            toUserId,
-            toUsername,
-            message,
-            createdAt
-        }
-    */
-    console.log('📩 Recibido mensaje con ID:', payload.messageId);
-   
-    const isOwn = payload.userId === currentUserId;
-
-    console.log('👤 currentUserId:', currentUserId, '| payload.userId:', payload.userId);
-    console.log('🤔 Es mío?', isOwn);
-
-    // Verificar si el mensaje pertenece al chat que está abierto
-    const talkingWith = isOwn ? payload.toUserId : payload.userId;
-    const isForCurrentConversation = selectedUserId && talkingWith === selectedUserId;
-
-    // Guardar el último mensaje
-    lastMessagesByUser.set(talkingWith, {
-        text: payload.message,
-        createdAt: payload.createdAt
-    });
-
-    if (isForCurrentConversation) appendMessageBubble(payload.message, payload.createdAt, isOwn, payload.messageId);
-    else {
-        markUserAsUnread(talkingWith);
-
-        // Se guarda también si es de uno, aunque no este visible
-        if (isOwn) appendMessageBubble(payload.message, payload.createdAt, true, payload.messageId);
-    }
-
-    if (!isOwn && !isForCurrentConversation) {
-        try {
-            notificationSound.currentTime = 0; // Se reinicia si ya estaba sonando
-            notificationSound.play();
-        } catch (error) {
-            console.warn("No se pudo reproducir el sonido:", error);
-        }
-    }
-
-    if (!isOwn && isForCurrentConversation) confirmIfNeeded(payload.messageId, payload.userId);
-
-    renderUserList(); // Para resfrescar texto
 });
 
 messageContainer.addEventListener('scroll', () => {    
