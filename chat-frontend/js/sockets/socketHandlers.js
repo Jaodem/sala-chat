@@ -132,3 +132,50 @@ export function handlePrivateMessage(socket, {
         renderUserList();
     });
 }
+
+export function handleTypingEvents(socket, {
+    getSelectedUserId,
+    getCurrentUserId,
+    getUsers,
+    getSelectedUser,
+    messageInput,
+    typingIndicator
+}) {
+    let typingTimeout;
+
+    messageInput.addEventListener('input', () => {
+        const selectedUser = getSelectedUser();
+        const currentUserId = getCurrentUserId();
+        const users = getUsers();
+
+        if (!selectedUser) return;
+
+        socket.emit('typing', {
+            toUserId: selectedUser.userId,
+            fromUserId: currentUserId,
+            fromUsername: users.find(u => u.userId === currentUserId)?.username
+        });
+
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            socket.emit('stop-typing', {
+                toUserId: selectedUser.userId
+            });
+        }, 2000);
+    });
+
+    socket.on('user-typing', ({ fromUserId, fromUsername }) => {
+        if (getSelectedUserId() !== fromUserId) return;
+
+        typingIndicator.textContent = `${fromUsername} está escribiendo...`;
+
+        clearTimeout(typingIndicator.timeout);
+        typingIndicator.timeout = setTimeout(() => {
+            typingIndicator.textContent = '';
+        }, 3000);
+    });
+
+    socket.on('user-stop-typing', ({ fromUserId }) => {
+        if (getSelectedUserId() === fromUserId) typingIndicator.textContent = '';
+    });
+}

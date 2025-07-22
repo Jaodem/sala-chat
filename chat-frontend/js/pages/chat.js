@@ -2,11 +2,10 @@ import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
 import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
 import { createElement } from "../utils/domUtils.js";
-import { registerSocketHandlers } from "../sockets/socketHandlers.js";
+import { registerSocketHandlers, handleTypingEvents } from "../sockets/socketHandlers.js";
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();
-
 const token = getToken();
 
 // Conectar al servidor socket.io enviando token para autenticar
@@ -71,6 +70,21 @@ registerSocketHandlers(socket, {
     zumbidoSound
 });
 
+// Envío de mensajes
+const messageForm = document.getElementById('messageForm');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const typingIndicator = document.getElementById('typingIndicator');
+
+handleTypingEvents(socket, {
+    getSelectedUserId,
+    getCurrentUserId,
+    getUsers,
+    getSelectedUser,
+    messageInput,
+    typingIndicator
+});
+
 // Funciones auxiliares
 function getTokenWrapper() {
     return token;
@@ -89,7 +103,8 @@ function getUsers() {
 }
 
 function setUsers(newUsers) {
-    users = newUsers;
+    users.length = 0;
+    users.push(...newUsers);
 }
 
 function getSelectedUserId() {
@@ -273,11 +288,6 @@ logoutBtn.addEventListener('click', () => {
     window.location.href = 'index.html';
 });
 
-// Envío de mensajes
-const messageForm = document.getElementById('messageForm');
-const messageInput = document.getElementById('messageInput');
-const sendBtn = document.getElementById('sendBtn');
-
 messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -320,43 +330,6 @@ scrollBtn.addEventListener('click', () => {
         smooth: true
     });
     hideScrollBtn(0); // Se lo oculta inmediatamente
-});
-
-let typingTimeout;
-messageInput.addEventListener('input', () => {
-    if (!selectedUser) return;
-
-    socket.emit('typing', {
-        toUserId: selectedUser.userId,
-        fromUserId: currentUserId,
-        fromUsername: users.find(u => u.userId === currentUserId)?.username
-    });
-
-    // Prevenir spam de eventos
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-        socket.emit('stop-typing', {
-            toUserId: selectedUser.userId
-        });
-    }, 2000);
-});
-
-const typingIndicator = document.getElementById('typingIndicator');
-
-socket.on('user-typing', ({ fromUserId, fromUsername }) => {
-    // Solo si es el chat activo
-    if (selectedUserId !== fromUserId) return;
-
-    typingIndicator.textContent = `${fromUsername} está escribiendo...`;
-
-    clearTimeout(typingIndicator.timeout);
-    typingIndicator.timeout = setTimeout(() => {
-        typingIndicator.textContent = '';
-    }, 3000);
-});
-
-socket.on('user-stop-typing', ({ fromUserId }) => {
-    if (selectedUserId === fromUserId) typingIndicator.textContent = '';
 });
 
 socket.on('message-received', ({ messageId }) => {
