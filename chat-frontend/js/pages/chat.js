@@ -2,6 +2,7 @@ import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
 import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
 import { createElement } from "../utils/domUtils.js";
+import { registerSocketHandlers } from "../sockets/socketHandlers.js";
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();
@@ -50,6 +51,62 @@ const unread = new Set();
 
 // Inicializar messageUI
 initMessageUI(messageContainer, scrollBtn, sentMessages, pendingConfirmations, statusMessage);
+
+registerSocketHandlers(socket, {
+    getToken: getTokenWrapper,
+    getCurrentUserId,
+    setCurrentUserId,
+    getSelectedUserId,
+    getSelectedUser,
+    getUsers,
+    setUsers,
+    setUnread,
+    renderUserList,
+    sentMessages,
+    pendingConfirmations,
+    confirmedMessages,
+    lastMessagesByUser,
+    messageContainer,
+    notificationSound,
+    zumbidoSound
+});
+
+// Funciones auxiliares
+function getTokenWrapper() {
+    return token;
+}
+
+function getCurrentUserId() {
+    return currentUserId;
+}
+
+function setCurrentUserId(id) {
+    currentUserId = id;
+}
+
+function getUsers() {
+    return users;
+}
+
+function setUsers(newUsers) {
+    users = newUsers;
+}
+
+function getSelectedUserId() {
+    return selectedUserId;
+}
+
+function getSelectedUser() {
+    return selectedUser;
+}
+
+function getUnread() {
+    return unread;
+}
+
+function setUnread(userId) {
+    unread.add(userId);
+}
 
 function sortAndFilter(list) {
     return list
@@ -209,52 +266,6 @@ async function loadChatMessages(userId) {
             '<p class="text-red-500">Error de red al cargar historial.</p>';
     }
 }
-
-// Eventos del socket
-// Conexión al chat
-socket.on('connect', () => {
-    console.log('✅ Socket conectado');
-    /*  Decodificamos el JWT para obtener nuestro userId
-        (payload = token.split('.')[1] en base64url)
-    */
-    try {
-        const payload = JSON.parse(
-            atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
-        );
-        currentUserId = payload.userId;
-
-    } catch (e) {
-        console.error("No se pudo decodificar el token", e);
-    }
-});
-
-// Lista inicial y actualizaciones
-socket.on('user-list', (list) => {
-    users = list;
-    renderUserList();
-});
-
-// Usuario se conecta
-socket.on('user-connected', ({ userId, username }) => {
-    users.push({ userId, username });
-    renderUserList();
-
-    showStatusMessage(`${username} se conectó`, 'connect');
-});
-
-// Usuario se desconecta
-socket.on('user-disconnected', ({ userId }) => {
-    const gone = users.find(u => u.userId === userId);
-    users = users.filter(u => u.userId !== userId);
-    renderUserList();
-    showStatusMessage(`${gone?.username || 'Usuario'} se desconectó`, 'disconnect');
-});
-
-// Desconexión local
-socket.on('disconnect', () => {
-    console.log('🔌 Socket desconectado');
-    showStatusMessage('Desconectado del servidor', 'disconnect');
-});
 
 // Logout
 logoutBtn.addEventListener('click', () => {
