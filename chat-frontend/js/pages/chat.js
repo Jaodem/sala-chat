@@ -3,6 +3,7 @@ import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
 import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
 import { createElement } from "../utils/domUtils.js";
 import { registerSocketHandlers, handleTypingEvents } from "../sockets/socketHandlers.js";
+import { getCurrentUserId, setCurrentUserId, getSelectedUserId, getSelectedUser, setSelectedUser, getUsers, setUsers, getUnread, markAsUnread, clearUnread } from '../state/userState.js';
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();
@@ -21,10 +22,6 @@ const logoutBtn = document.getElementById('logoutBtn');
 const statusMessage = document.getElementById('statusMessage');
 const scrollBtn = document.getElementById('scrollToBottomBtn');
 
-let currentUserId = null; // nuestro userId
-let selectedUserId = null; // Usuario con quien se chatea
-let selectedUser = null;   // Se guarda el objeto completo
-let users = []; // Lista de usuarios conectados
 let lastMessagesByUser = new Map(); // userId => { text, createdAt }
 
 const sentMessages = new Map(); // messageId => DOMNode
@@ -45,9 +42,6 @@ const zumbidoSound = document.getElementById('zumbidoSound');
 // Para los zumbidos
 const zumbidoBtn = document.getElementById('zumbidoBtn');
 
-// Set con usuarios que tienen mensajes pendientes
-const unread = new Set();
-
 // Inicializar messageUI
 initMessageUI(messageContainer, scrollBtn, sentMessages, pendingConfirmations, statusMessage);
 
@@ -59,7 +53,7 @@ registerSocketHandlers(socket, {
     getSelectedUser,
     getUsers,
     setUsers,
-    setUnread: markUserAsUnread, // 👈 usamos tu función ya definida
+    setUnread: markUserAsUnread, //
     renderUserList,
     sentMessages,
     pendingConfirmations,
@@ -90,40 +84,8 @@ function getTokenWrapper() {
     return token;
 }
 
-function getCurrentUserId() {
-    return currentUserId;
-}
-
-function setCurrentUserId(id) {
-    currentUserId = id;
-}
-
-function getUsers() {
-    return users;
-}
-
-function setUsers(newUsers) {
-    users.length = 0;
-    users.push(...newUsers);
-}
-
-function getSelectedUserId() {
-    return selectedUserId;
-}
-
-function getSelectedUser() {
-    return selectedUser;
-}
-
-function getUnread() {
-    return unread;
-}
-
-function setUnread(userId) {
-    unread.add(userId);
-}
-
 function sortAndFilter(list) {
+    const currentUserId = getCurrentUserId();
     return list
         .filter(u => u.userId !== currentUserId)
         .sort((a, b) =>
@@ -132,6 +94,8 @@ function sortAndFilter(list) {
 }
 
 function createUserListItem(user) {
+    const selectedUserId = getSelectedUserId();
+    const unread = getUnread();
     const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
     li.dataset.uid = user.userId;
 
@@ -169,6 +133,7 @@ function createUserListItem(user) {
 function renderUserList() {
     userList.innerHTML = '';
 
+    const users = getUsers();
     const filtered = sortAndFilter(users);
 
     if (filtered.length === 0) {
@@ -184,11 +149,10 @@ function renderUserList() {
 }
 
 function selectUser(user) {
-    selectedUser = user;
-    selectedUserId = user.userId;
+    setSelectedUser(user);
     chatWith.textContent = `Chat con ${user.username}`;
 
-    unread.delete(user.userId);
+    clearUnread(user.userId);
 
     renderUserList();
 
@@ -205,6 +169,7 @@ userList.addEventListener('click', event => {
     if (!uid) return;
 
     // Se busca el usuario en la lista
+    const users = getUsers();
     const user = users.find(u => u.userId === uid);
     if (!user) return;
     selectUser(user);
@@ -212,6 +177,9 @@ userList.addEventListener('click', event => {
 
 // Marcar usuario con mensaje no leído
 function markUserAsUnread(userId) {
+    const selectedUserId = getSelectedUserId();
+    const unread = getUnread();
+
     if (userId !== selectedUserId) { // Sólo si no es el chat activo
         unread.add(userId);
         renderUserList(); // Se redibuja con el puntito
@@ -249,7 +217,7 @@ async function loadChatMessages(userId) {
         let lastDate = null;
 
         message.forEach(msg => {
-            const isOwn = msg.userId === currentUserId;
+            const isOwn = msg.userId === getCurrentUserId();
             const msgDate = new Date(msg.createdAt).toDateString();
 
             if (msgDate !== lastDate) {
@@ -292,14 +260,12 @@ messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const text = messageInput.value.trim();
-    if (!text || !selectedUser) return;
-
-    console.log('emit →', {text, selectedUserId, toUsername:
-        users.find(u => u.userId === selectedUserId)?.username });
+    const user = getSelectedUser();
+    if (!text || !user) return;
 
     socket.emit('send-message', {
-        toUserId: selectedUser.userId,
-        toUsername: selectedUser.username,
+        toUserId: user.userId,
+        toUsername: user.username,
         message: text
     });
 
@@ -387,7 +353,7 @@ socket.on('receive-zumbido', ({ fromUserId, fromUsername }) => {
     });
 
     // Si no esta en el chat del emisor, marcar notificación
-    if (fromUserId === selectedUserId) {
+    if (fromUserId === getSelectedUserId()) {
         // Si esta en la ventana del emisor, mostrar mensaje en la ventana de chat
         appendZumbidoMessage(`─────⚡ ${fromUsername} te envió un zumbido ⚡─────`);
     } else {
@@ -434,6 +400,7 @@ document.addEventListener('click', event => {
 
 // Para enviar el zumbido
 zumbidoBtn.addEventListener('click', () => {
+    const selectedUser = getSelectedUser();
     if (!selectedUser) return;
 
     socket.emit('send-zumbido', {
