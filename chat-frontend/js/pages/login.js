@@ -1,6 +1,10 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { redirectIfLoggedIn } from "../utils/checkAuth.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { showAlert } from "../utils/showAlert.js";
+
+// Aplicar el tema al cargar
+setupThemeToggle();
 
 // Se redirecciona si el usuario ya está logueado
 redirectIfLoggedIn();

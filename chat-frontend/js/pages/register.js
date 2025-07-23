@@ -5,11 +5,11 @@ import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { isPasswordValid } from "../utils/validatePasswordStrength.js";
 import { showAlert } from "../utils/showAlert.js";
 
-// Se redirecciona si el usuario ya está logueado
-redirectIfLoggedIn();
-
 // Aplicar el cambio de tema
 setupThemeToggle();
+
+// Se redirecciona si el usuario ya está logueado
+redirectIfLoggedIn();
 
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');

@@ -6,34 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Iniciar sesión | Sala Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen transition-colors duration-300">
 
-    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md space-y-4">
-        <h1 class="text-2xl font-bold text-center text-gray-800">
+    <button id="themeToggle"
+        class="absolute top-6 right-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded shadow transition">
+        🌙
+    </button>
+    <div
+        class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md w-full max-w-md space-y-4 transition-colors duration-300">
+        <h1 class="text-2xl font-bold text-center text-gray-800 dark:text-white">
             Iniciar sesión
         </h1>
 
         <form id="loginForm" class="space-y-4">
 
             <div>
-                <label for="identifier" class="block text-sm font-medium text-gray-700">
+                <label for="identifier" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Email o usuario
                 </label>
                 <input type="text" id="identifier" name="identifier" required
-                    class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
             </div>
 
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">
+                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Contraseña
                 </label>
                 <div class="relative">
                     <input type="password" id="password" name="password" required
-                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10" />
+                        class="w-full mt-1 px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
                     <button type="button" id="togglePassword" aria-label="Mostrar/ocular contraseña"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
                         <!-- El ícono se insertará por JS -->
                     </button>
                 </div>
@@ -49,16 +60,16 @@
         <!-- Contenedor de alertas -->
         <div id="alertContainer"></div>
 
-        <p class="text-sm text-center text-gray-600">
+        <p class="text-sm text-center text-gray-600 dark:text-gray-300">
             ¿No tenés cuenta?
-            <a href="register.html" class="text-blue-600 hover:underline">
+            <a href="register.html" class="text-blue-600 hover:underline dark:text-blue-400">
                 Registráte
             </a>
         </p>
 
-        <p class="text-sm text-center text-gray-600">
+        <p class="text-sm text-center text-gray-600 dark:text-gray-300">
             ¿Olvidaste tu contraseña?
-            <a href="recuperar-cuenta.html" class="text-blue-600 hover:underline">
+            <a href="recuperar-cuenta.html" class="text-blue-600 hover:underline dark:text-blue-400">
                 Recuperála
             </a>
         </p>
