@@ -1,7 +1,6 @@
 import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
-import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, formatDateSeparator, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
-import { createElement } from "../utils/domUtils.js";
+import { initMessageUI, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
 import { registerSocketHandlers, handleTypingEvents } from "../sockets/socketHandlers.js";
 import { getCurrentUserId, setCurrentUserId, getSelectedUserId, getSelectedUser, setSelectedUser, getUsers, setUsers, getUnread, markAsUnread, clearUnread } from '../state/userState.js';
 import { renderUserList as renderUserListUI } from "../components/chat/userListUI.js";
