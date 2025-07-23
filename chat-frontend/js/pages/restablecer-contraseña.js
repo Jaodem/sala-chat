@@ -1,7 +1,11 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { showAlert } from "../utils/showAlert.js";
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { isPasswordValid } from "../utils/validatePasswordStrength.js";
+
+// Habilitar el tema oscuro
+setupThemeToggle();
 
 // Elementos del DOM
 const tokenError = document.getElementById('tokenError');
