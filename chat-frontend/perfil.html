@@ -1,50 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil de usuario | Sala Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen flex flex-col">
     <!-- NavBar -->
-    <nav class="bg-white shadow-lg p-4 flex justify-between items-center border-b z-10 sticky top-0">
-        <a href="chat.html" class="text-blue-600 font-semibold hover:underline">
+    <nav
+        class="bg-white dark:bg-gray-800 shadow-lg p-4 flex justify-between items-center border-b dark:border-gray-700 z-10 sticky top-0">
+        <a href="chat.html" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
             Volver al chat
         </a>
 
-        <div id="statusMessage" class="text-sm text-gray-600">
+        <div id="statusMessage" class="text-sm text-gray-600 dark:text-gray-300">
             <!-- Aquí irán mensajes de conecciones -->
         </div>
 
-        <button id="logoutBtn" class="text-red-600 font-semibold hover:underline">
-            Cerrar sesión
-        </button>
+        <div class="flex items-center gap-4">
+            <button id="logoutBtn" class="text-red-600 font-semibold hover:underline">
+                Cerrar sesión
+            </button>
+            <!-- Botón de cambio de tema -->
+            <button id="themeToggle" title="Alternar tema claro/oscuro"
+                class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded shadow transition">
+                🌙
+            </button>
+        </div>
     </nav>
 
     <!-- Contenido del perfil -->
-     <main class="flex-1 flex items-center justify-center p-4">
-         <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md space-y-6">
-             <h1 class="text-2xl font-bold text-center text-gray-800">
-                 Perfil de usuario
-             </h1>
-     
-             <div id="userInfo" class="text-center text-gray-700 space-y-2">
-                 <!-- Aquí se mostrará el username y correo -->
-             </div>
-     
-             <div class="flex flex-col gap-3">
-                 <a href="cambiar-contraseña.html" class="text-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition duration-200">
-                     Cambiar contraseña
-                 </a>
-     
-                 <button id="deleteAccountBtn" class="w-full bg-red-600 text-white py-2 rounded-xl hover:bg-red-700 transition duration-200">
-                     Eliminar cuenta
-                 </button>
-             </div>
-         </div>
-     </main>
+    <main class="flex-1 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md w-full max-w-md space-y-6">
+            <h1 class="text-2xl font-bold text-center text-gray-800 dark:text-gray-100">
+                Perfil de usuario
+            </h1>
+
+            <div id="userInfo" class="text-center text-gray-700 dark:text-gray-300 space-y-2">
+                <!-- Aquí se mostrará el username y correo -->
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <a href="cambiar-contraseña.html"
+                    class="text-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl transition duration-200">
+                    Cambiar contraseña
+                </a>
+
+                <button id="deleteAccountBtn"
+                    class="w-full bg-red-600 text-white py-2 rounded-xl hover:bg-red-700 transition duration-200">
+                    Eliminar cuenta
+                </button>
+            </div>
+        </div>
+    </main>
 
     <script type="module" src="./js/pages/perfil.js"></script>
 </body>
+
 </html>

@@ -1,5 +1,9 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { showAlert } from "../utils/showAlert.js";
 import { redirectIfNotLoggedIn, getToken, logout } from "../utils/checkAuth.js";
+
+// Aplicar el cambio de tema
+setupThemeToggle();
 
 // Redireccionar en caso de no estar logueado
 redirectIfNotLoggedIn();
