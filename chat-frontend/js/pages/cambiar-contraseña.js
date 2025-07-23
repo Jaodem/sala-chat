@@ -1,8 +1,12 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { showAlert } from "../utils/showAlert.js";
 import { isPasswordValid } from "../utils/validatePasswordStrength.js";
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
 import { redirectIfNotLoggedIn, getToken } from "../utils/checkAuth.js";
+
+// Habilitar el tema oscuro
+setupThemeToggle();
 
 // Redireccionar en caso de no estar logueado
 redirectIfNotLoggedIn();
