@@ -6,20 +6,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Verificá tu correo | Sala Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-
-  <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md text-center space-y-4">
-    <h1 class="text-2xl font-bold text-gray-800">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen transition-colors duration-300">
+  <button id="themeToggle" class="absolute top-6 right-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded shadow transition">
+    🌙
+  </button>
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md w-full max-w-md text-center space-y-4 transition-colors duration-300">
+    <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
       Verificá tu cuenta
     </h1>
 
-    <p class="text-gray-600 text-sm">
+    <p class="text-gray-600 dark:text-gray-300 text-sm">
       Te enviamos un correo para verificar tu cuenta. Revisá tu bandeja de entrada y seguí las instrucciones.
     </p>
 
-    <div id="emailInfo" class="text-gray-500 text-sm italic"></div>
+    <div id="emailInfo" class="text-gray-500 dark:text-gray-400 text-sm italic"></div>
 
     <button id="resendBtn"
       class="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition duration-200">
@@ -27,9 +34,9 @@
 
     <div id="alertContainer"></div>
 
-    <p class="text-sm text-gray-600 mt-4">
+    <p class="text-sm text-gray-600 dark:text-gray-300 mt-4">
       ¿Ya verificaste tu cuenta?
-      <a href="login.html" class="text-blue-600 hover:underline">
+      <a href="login.html" class="text-blue-600 hover:underline dark:text-blue-400">
         Iniciá sesión
       </a>
     </p>

@@ -1,9 +1,13 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { startCountdown } from "../utils/countdownButton.js";
 import { showAlert } from "../utils/showAlert.js";
 
 const resendBtn = document.getElementById('resendBtn');
 const alertContainer = document.getElementById('alertContainer');
 const emailInfo = document.getElementById('emailInfo');
+
+// Aplicar el cambio de tema
+setupThemeToggle();
 
 // Mostrar el email pendiente (si existe)
 const pendingEmail = sessionStorage.getItem('pendingEmail');
