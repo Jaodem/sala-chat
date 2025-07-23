@@ -18,7 +18,7 @@ export function setupThemeToggle(buttonId = 'themeToggle') {
     toggleBtn.addEventListener('click', () => {
         document.documentElement.classList.toggle('dark');
         const isDark = document.documentElement.classList.contains('dark');
-        
+
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
         toggleBtn.textContent = isDark ? '☀️' : '🌙';
     });

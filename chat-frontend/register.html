@@ -6,12 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro | Sala Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
 </head>
 
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-
-    <div class="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold text-center mb-6">
+<body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen transition-colors duration-300">
+    <button id="themeToggle"
+        class="absolute top-6 right-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded shadow transition">
+        🌙
+    </button>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-md w-full max-w-md transition-colors duration-300">
+        <h1 class="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">
             Crear cuenta
         </h1>
 
@@ -19,31 +28,31 @@
         <form id="registerForm" class="space-y-4">
             <!-- Username -->
             <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                     Nombre de usuario
                 </label>
                 <input type="text" name="username" required
-                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
             </div>
             <!-- Email -->
             <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                     Correo electrónico
                 </label>
                 <input type="email" name="email" required
-                    class="w-full px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
+                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
             </div>
             <!-- Contraseña -->
             <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                     Contraseña
                 </label>
                 <div>
                     <div class="relative" id="password-wrapper">
                         <input type="password" name="password" id="password" required
-                            class="w-full pr-10 px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
+                            class="w-full pr-10 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
                         <button type="button" id="togglePassword" aria-label="Mostrar/ocular contraseña"
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
                             <!-- El ícono se insertará por JS -->
                         </button>
                     </div>
@@ -53,15 +62,15 @@
             </div>
             <!-- Confirmar contraseña -->
             <div>
-                <label class="block mb-1 text-sm font-medium text-gray-700">
+                <label class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                     Confirmar contraseña
                 </label>
                 <div>
                     <div class="relative" id="confirmPassword-wrapper">
                         <input type="password" name="confirmPassword" id="confirmPassword" required
-                            class="w-full pr-10 px-4 py-2 border rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
+                            class="w-full pr-10 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl focus:outline-none focus:ring focus:border-blue-300" />
                         <button type="button" id="toggleConfirmPassword" aria-label="Mostrar/ocular contraseña"
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white">
                             <!-- El ícono se insertará por JS -->
                         </button>
                     </div>
@@ -78,9 +87,9 @@
         <div id="alertContainer" class="mt-4"></div>
 
         <!-- Link a login -->
-        <p class="mt-6 text-sm text-center text-gray-600">
+        <p class="mt-6 text-sm text-center text-gray-600 dark:text-gray-300">
             ¿Ya tenés una cuenta?
-            <a href="login.html" class="text-blue-600 hover:underline">
+            <a href="login.html" class="text-blue-600 dark:text-blue-400 hover:underline">
                 Iniciá sesión
             </a>
         </p>

@@ -1,3 +1,4 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { redirectIfLoggedIn } from "../utils/checkAuth.js";
 import { attachPasswordRules } from "../components/passwordRules.js";
 import { addPasswordToggle } from "../components/togglePasswordVisibility.js";
@@ -6,6 +7,9 @@ import { showAlert } from "../utils/showAlert.js";
 
 // Se redirecciona si el usuario ya está logueado
 redirectIfLoggedIn();
+
+// Aplicar el cambio de tema
+setupThemeToggle();
 
 // Módulo para manejar el registro de usuario
 const form = document.getElementById('registerForm');

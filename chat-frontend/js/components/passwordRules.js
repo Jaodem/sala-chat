@@ -5,7 +5,7 @@ export function attachPasswordRules(inputElement) {
 
     // Crear estructura
     const rules = document.createElement('ul');
-    rules.className = 'hidden mt-2 w-full text-sm text-gray-600 space-y-1 bg-white border rounded-xl p-2 shadow';
+    rules.className = 'hidden mt-2 w-full text-sm text-gray-700 dark:text-gray-100 space-y-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl p-2 shadow';
     rules.id = 'passwordRules';
 
     rules.innerHTML = `
