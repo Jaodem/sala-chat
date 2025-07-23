@@ -1,5 +1,9 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { startCountdown } from "../utils/countdownButton.js";
 import { showAlert } from "../utils/showAlert.js";
+
+// Aplicar tema oscuro
+setupThemeToggle();
 
 const form = document.getElementById('recoveryForm');
 const emailInput = document.getElementById('email');
