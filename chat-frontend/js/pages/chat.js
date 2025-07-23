@@ -1,3 +1,4 @@
+import { setupThemeToggle } from "../theme/themeToggle.js";
 import { getToken, logout, redirectIfNotLoggedIn } from "../utils/checkAuth.js";
 import { io } from 'https://cdn.socket.io/4.5.4/socket.io.esm.min.js';
 import { initMessageUI, isNearBottom, scrollToBottom, hideScrollBtn, appendZumbidoMessage, showStatusMessage } from "../components/chat/messageUI.js";
@@ -5,6 +6,9 @@ import { registerSocketHandlers, handleTypingEvents } from "../sockets/socketHan
 import { getCurrentUserId, setCurrentUserId, getSelectedUserId, getSelectedUser, setSelectedUser, getUsers, setUsers, getUnread, markAsUnread, clearUnread } from '../state/userState.js';
 import { renderUserList as renderUserListUI } from "../components/chat/userListUI.js";
 import { loadChatMessages as loadChatHistory } from "../components/chat/chatHistory.js";
+
+// Habilitar el tema oscuro
+setupThemeToggle();
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();

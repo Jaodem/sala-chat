@@ -11,7 +11,7 @@ export function sortAndFilter(list, currentUserId) {
 export function createUserListItem(user, lastMessagesByUser) {
     const selectedUserId = getSelectedUserId();
     const unread = getUnread();
-    const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
+    const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700');
     li.dataset.uid = user.userId;
 
     const topRow = createElement('div', 'flex items-center justify-between');
@@ -19,8 +19,16 @@ export function createUserListItem(user, lastMessagesByUser) {
     const usernameSpan = createElement('span', '', user.username);
 
     if (user.userId === selectedUserId) {
-        usernameSpan.classList.add('font-semibold', 'text-blue-800');
-        li.classList.add('bg-blue-100');
+        usernameSpan.classList.add(
+            'font-semibold',
+            'text-blue-800',        // claro
+            'dark:text-blue-300'    // oscuro
+            );
+
+            li.classList.add(
+            'bg-blue-100',          // claro
+            'dark:bg-blue-900'      // oscuro
+        );
     }
 
     topRow.appendChild(usernameSpan);
@@ -28,7 +36,11 @@ export function createUserListItem(user, lastMessagesByUser) {
     if (unread.has(user.userId)) {
         const dot = createElement('span', 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2');
         li.appendChild(dot);
-        li.classList.add('bg-yellow-200');
+        li.classList.add(
+            'border-l-4', 'border-red-500',
+            'bg-red-50',           // Claro: fondo sutil rosado
+            'dark:bg-red-950'      // Oscuro: fondo sutil rojizo oscuro
+        );
     }
 
     li.appendChild(topRow);
@@ -37,7 +49,7 @@ export function createUserListItem(user, lastMessagesByUser) {
     if (lastMsg) {
         const time = formatTime(lastMsg.createdAt);
         const previewText = `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`;
-        const preview = createElement('span', 'text-sm text-gray-600 truncate', previewText);
+        const preview = createElement('span', 'text-sm text-gray-600 dark:text-gray-300 truncate', previewText);
         li.appendChild(preview);
     }
 
