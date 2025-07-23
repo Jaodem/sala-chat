@@ -6,14 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenido | Sala Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
 </head>
 
-<body class="bg-gray-100 flex flex-col min-h-screen justify-center items-center p-6">
-    <div class="bg-white p-10 rounded-3xl shadow-lg max-w-lg text-center space-y-6">
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col min-h-screen justify-center items-center p-6 transition-colors duration-300">
+    <button id="themeToggle" title="Alternar tema claro/oscuro" class="absolute top-6 right-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded shadow transition">
+        🌙
+    </button>
+    <div class="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-lg max-w-lg text-center space-y-6">
         <h1 class="text-4xl font-extrabold text-blue-600">
             Sala Chat
         </h1>
-        <p class="text-gray-700 text-lg whitespace-pre-line">
+        <p class="text-gray-700 dark:text-gray-100 text-lg whitespace-pre-line">
             ¡Bienvenido a la <strong>Sala Chat</strong>!
             Conectáte, conversá y compartí con amigos.
         </p>
@@ -23,13 +31,13 @@
                 Iniciá sesión
             </a>
             <a href="register.html"
-                class="border border-blue-600 text-blue-600 font-semibold py-3 px-8 rounded-xl hover:bg-blue-100 transition">
+                class="border border-blue-600 dark:text-gray-100 text-blue-600 font-semibold py-3 px-8 rounded-xl hover:bg-blue-100 transition">
                 Registráte
             </a>
         </div>
     </div>
 
-    <footer class="mt-auto py-4 text-center text-gray-500 text-sm">
+    <footer class="mt-auto py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
         &copy; 2025 Sala Chat. Todos los derechos reservados. Creado por <strong>Jao</strong>
     </footer>
 
