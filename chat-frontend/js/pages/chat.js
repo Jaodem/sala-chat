@@ -4,6 +4,8 @@ import { initMessageUI, appendMessageBubble, appendDateSeparator, formatTime, fo
 import { createElement } from "../utils/domUtils.js";
 import { registerSocketHandlers, handleTypingEvents } from "../sockets/socketHandlers.js";
 import { getCurrentUserId, setCurrentUserId, getSelectedUserId, getSelectedUser, setSelectedUser, getUsers, setUsers, getUnread, markAsUnread, clearUnread } from '../state/userState.js';
+import { renderUserList as renderUserListUI } from "../components/chat/userListUI.js";
+import { loadChatMessages as loadChatHistory } from "../components/chat/chatHistory.js";
 
 // Validar sesión, si no está logueado redirige a login
 redirectIfNotLoggedIn();
@@ -84,68 +86,9 @@ function getTokenWrapper() {
     return token;
 }
 
-function sortAndFilter(list) {
-    const currentUserId = getCurrentUserId();
-    return list
-        .filter(u => u.userId !== currentUserId)
-        .sort((a, b) =>
-            a.username.localeCompare(b.username, 'es', { sensitivity: 'base' })
-        );
-}
-
-function createUserListItem(user) {
-    const selectedUserId = getSelectedUserId();
-    const unread = getUnread();
-    const li = createElement('li', 'flex items-center gap-2 p-3 cursor-pointer hover:bg-gray-200');
-    li.dataset.uid = user.userId;
-
-    const topRow = createElement('div', 'flex items-center justify-between');
-
-    const usernameSpan = createElement('span', '', user.username);
-
-    if (user.userId === selectedUserId) {
-        usernameSpan.classList.add('font-semibold', 'text-blue-800');
-        li.classList.add('bg-blue-100');
-    }
-
-    topRow.appendChild(usernameSpan);
-
-    if (unread.has(user.userId)) {
-        const dot = createElement('span', 'dot inline-block w-2 h-2 bg-red-500 rounded-full mr-2');
-        li.appendChild(dot);
-        li.classList.add('bg-yellow-200');
-    }
-
-    li.appendChild(topRow);
-
-    const lastMsg = lastMessagesByUser.get(user.userId);
-    if (lastMsg) {
-        const time = formatTime(lastMsg.createdAt);
-        const previewText = `${lastMsg.text.slice(0, 30)}${lastMsg.text.length > 30 ? '…' : ''} • ${time}`;
-        const preview = createElement('span', 'text-sm text-gray-600 truncate', previewText);
-        li.appendChild(preview);
-    }
-
-    return li;
-}
-
 // Renderizar lista de usuarios
 function renderUserList() {
-    userList.innerHTML = '';
-
-    const users = getUsers();
-    const filtered = sortAndFilter(users);
-
-    if (filtered.length === 0) {
-        const li = createElement('li', 'p-3 text-sm text-gray-500 italic', 'No hay otros usuarios conectados');
-        userList.appendChild(li);
-        return;
-    }
-
-    filtered.forEach(user => {
-        const li = createUserListItem(user);
-        userList.appendChild(li);
-    });
+    renderUserListUI(userList, lastMessagesByUser, getCurrentUserId);
 }
 
 function selectUser(user) {
@@ -197,57 +140,14 @@ function confirmIfNeeded(messageId, toUserId) {
 
 // Cargar mensajes desde el backend
 async function loadChatMessages(userId) {
-    messageContainer.innerHTML = '';
-    
-    try {
-        const res = await fetch(`http://localhost:3000/api/chat/history/${userId}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        if (!res.ok) {
-            messageContainer.innerHTML =
-                '<p class="text-red-500">No se pudo cargar el historial.</p>';
-            return;
-        }
-
-        const { data: message } = await res.json();
-
-        let lastDate = null;
-
-        message.forEach(msg => {
-            const isOwn = msg.userId === getCurrentUserId();
-            const msgDate = new Date(msg.createdAt).toDateString();
-
-            if (msgDate !== lastDate) {
-                appendDateSeparator(formatDateSeparator(msg.createdAt));
-                lastDate = msgDate;
-            }
-
-            appendMessageBubble(msg.message, msg.createdAt, isOwn, msg._id);
-
-            // Se emite confirmación de lectura si el mensaje es ajeno
-            if (!isOwn) confirmIfNeeded(msg._id, msg.userId);
-        });
-
-        // Mostrar zumbidos pendientes si los hay
-        if (pendingConfirmations.zumbidos.has(userId)) {
-            const pendingZumbidos = pendingConfirmations.zumbidos.get(userId);
-            pendingZumbidos.forEach(z => {
-                if (z.type === 'zumbido') appendZumbidoMessage(`─────⚡ ${z.username} te envió un zumbido ⚡─────`);
-            });
-            pendingConfirmations.zumbidos.delete(userId);
-        }
-
-        requestAnimationFrame(() => {
-            messageContainer.scrollTop = messageContainer.scrollHeight;
-        });
-    } catch (error) {
-        console.error('Error al cargar historial:', error);
-        messageContainer.innerHTML =
-            '<p class="text-red-500">Error de red al cargar historial.</p>';
-    }
+    await loadChatHistory(
+        userId,
+        token,
+        messageContainer,
+        pendingConfirmations,
+        lastMessagesByUser,
+        confirmIfNeeded
+    )
 }
 
 // Logout
