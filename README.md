@@ -22,6 +22,91 @@ Este proyecto está dividido en dos carpetas principales:
 
 ---
 
+# 📐 Diseño y Arquitectura
+
+Este proyecto no es solo una aplicación funcional, sino una **demostración de una arquitectura de software desacoplada**.  
+Se compone de un **Frontend (cliente)** y un **Backend (servidor)** que se comunican a través de dos canales distintos:
+
+- **API REST (HTTP):** Para todas las acciones de autenticación y gestión de usuarios *(Registro, Login, Verificación de Email, Perfil)*.  
+- **WebSockets (Socket.io):** Para toda la comunicación en tiempo real *(Mensajes de chat, lista de usuarios conectados)*.
+
+---
+
+## 🧩 Diagrama de Arquitectura
+
+El siguiente diagrama ilustra el flujo de la información:
+
+```mermaid
+graph TD
+    subgraph "Cliente - Navegador"
+        A["Frontend: HTML + JS modular + TailwindCSS"]
+    end
+
+    subgraph "Servidor - Node.js"
+        B["API REST (Express)"]
+        C["Gestor de Sockets (Socket.io)"]
+        D["Base de Datos (MongoDB)"]
+    end
+
+    subgraph "Flujo 1: Autenticación (HTTP)"
+        A -->|POST /api/auth/login| B
+        B -->|Valida credenciales| D
+        D -->|Retorna info de usuario| B
+        B -->|Envía JWT al Cliente| A
+    end
+
+    subgraph "Flujo 2: Chat (Tiempo Real)"
+        A -->|"1. socket emit mensaje"| C
+        C -->|"2. Guarda en DB"| D
+        C -->|"3. socket broadcast nuevo_mensaje"| A
+    end
+
+
+```
+
+---
+
+# 🗄️ Modelos de Datos (Diseño de BD)
+
+Para dar soporte a las funcionalidades, se diseñaron dos modelos (colecciones) principales en **MongoDB**:
+
+## 1. Colección **Usuarios**
+
+Almacena la información de los usuarios, gestiona la autenticación y la recuperación de contraseñas.
+
+```javascript
+// Estructura (tipo Mongoose)
+{
+  nombre: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true }, // Contraseña hasheada
+  estado: { type: String, default: 'offline' },
+  emailToken: { type: String }, // Token para verificación/recuperación
+  emailVerified: { type: Boolean, default: false }
+}
+```
+
+---
+
+## 2. Colección **Mensajes**
+
+Almacena el historial de la conversación de la sala general.
+
+```javascript
+// Estructura (tipo Mongoose)
+{
+  usuario: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Usuario', 
+    required: true 
+  },
+  mensaje: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now }
+}
+```
+
+---
+
 ## 📦 Estructura del proyecto
 
 ```
